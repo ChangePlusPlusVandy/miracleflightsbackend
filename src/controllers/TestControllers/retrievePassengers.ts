@@ -1,5 +1,3 @@
-/* eslint-disable autofix/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import Airtable from 'airtable';
 import dotenv from 'dotenv';
 import type { FieldSet, Record } from 'airtable';
@@ -12,8 +10,7 @@ export const retrievePassengers = async (req: Request, res: Response) => {
   console.log(process.env.AIRTABLE_API_KEY);
 
   const base = new Airtable({
-    apiKey:
-      process.env.AIRTABLE_API_KEY || "",
+    apiKey: process.env.AIRTABLE_API_KEY || '',
   }).base('appwPsfAb6U8CV3mf');
 
   base('Flight Requests (Trips)')
@@ -24,25 +21,29 @@ export const retrievePassengers = async (req: Request, res: Response) => {
     })
     .firstPage(async function (err, records) {
       if (err) {
-          console.error(err);
-          return;
+        console.error(err);
+        return;
       }
       if (records) {
-          const flightLegs = records.map(record => record.fields["Flight Legs"] !== undefined ? record.fields["Flight Legs"] : []) as string[][];
-          console.log('Retrieved Flight Leg IDs', flightLegs);
+        const flightLegs = records.map(record =>
+          record.fields['Flight Legs'] !== undefined
+            ? record.fields['Flight Legs']
+            : []
+        ) as string[][];
+        console.log('Retrieved Flight Leg IDs', flightLegs);
 
-          try {
-
+        try {
           const trips = [] as Record<FieldSet>[][];
           const promises = flightLegs.map(async trip => {
             const flightLegsForTrip = [] as Record<FieldSet>[];
             const tripPromises = trip.map(async flightLegId => {
-              const flightLegRecord = await base('Flight Legs').find(flightLegId?.toString() || ''); // Replace with your actual table name
+              const flightLegRecord = await base('Flight Legs').find(
+                flightLegId?.toString() || ''
+              ); // Replace with your actual table name
               flightLegsForTrip.push(flightLegRecord);
             });
             await Promise.all(tripPromises);
             trips.push(flightLegsForTrip);
-       
           });
 
           await Promise.all(promises);
@@ -51,9 +52,9 @@ export const retrievePassengers = async (req: Request, res: Response) => {
 
           // Send the response or do further processing
           res.status(200).send(trips);
-          } catch(err) {
-            console.error(err);
-          }
+        } catch (err) {
+          console.error(err);
+        }
       }
-  });
+    });
 };
