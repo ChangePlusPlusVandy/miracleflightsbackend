@@ -6,7 +6,7 @@ import express from 'express';
 
 const exampleRouter = express.Router();
 
-/* Classes Controller */
+/* Test Controller */
 exampleRouter.get('/query', queryParameterExample);
 exampleRouter.get('/path/:value', pathParameterExample);
 exampleRouter.get('/body', bodyParameterExample);
