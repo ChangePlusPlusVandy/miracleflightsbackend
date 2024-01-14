@@ -67,6 +67,9 @@ export const getFlightRequestById = async (req: Request, res: Response) => {
  * @param res - the response object
  */
 export const createFlightRequest = async (req: Request, res: Response) => {
+  // get the flight request data from the request body
+  // const data = req.body;
+
   // use Joi to validate the request body
   // ...
 
