@@ -13,8 +13,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.retrievePassengers = void 0;
-/* eslint-disable autofix/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 const airtable_1 = __importDefault(require("airtable"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
@@ -23,7 +21,7 @@ dotenv_1.default.config();
 const retrievePassengers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     console.log(process.env.AIRTABLE_API_KEY);
     const base = new airtable_1.default({
-        apiKey: process.env.AIRTABLE_API_KEY || "",
+        apiKey: process.env.AIRTABLE_API_KEY || '',
     }).base('appwPsfAb6U8CV3mf');
     base('Flight Requests (Trips)')
         .select({
@@ -38,7 +36,9 @@ const retrievePassengers = (req, res) => __awaiter(void 0, void 0, void 0, funct
                 return;
             }
             if (records) {
-                const flightLegs = records.map(record => record.fields["Flight Legs"] !== undefined ? record.fields["Flight Legs"] : []);
+                const flightLegs = records.map(record => record.fields['Flight Legs'] !== undefined
+                    ? record.fields['Flight Legs']
+                    : []);
                 console.log('Retrieved Flight Leg IDs', flightLegs);
                 try {
                     const trips = [];
