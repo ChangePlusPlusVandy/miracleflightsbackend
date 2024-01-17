@@ -1,8 +1,8 @@
 import { AIRLINES } from './constants';
 import { faker } from '@faker-js/faker';
-import type { FlightRequestData } from '../interfaces/flight-request.interface';
-import type { PassengerData } from '../interfaces/passenger.interface';
-import type { FlightLegData } from '../interfaces/flight-leg.interface';
+import type { FlightRequestData } from '../interfaces/requests/flight-request.interface';
+import type { PassengerData } from '../interfaces/passenger/passenger.interface';
+import type { FlightLegData } from '../interfaces/legs/flight-leg.interface';
 
 /**
  * Creates a test passenger data object with random data
