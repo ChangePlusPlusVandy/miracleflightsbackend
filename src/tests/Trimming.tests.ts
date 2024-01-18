@@ -191,8 +191,11 @@ describe('Trimming', () => {
     expect(legData.fields['Passenger AirTable Record IDs']).to.equal(
       trimmedLeg['Passenger AirTable Record IDs']
     );
-    expect(legData.fields['Log Airline Credit']).to.equal(
-      trimmedLeg['Log Airline Credit']
+    expect(legData.fields['Log Airline Credit'].label).to.equal(
+      trimmedLeg['Log Airline Credit'].label
+    );
+    expect(legData.fields['Log Airline Credit'].url).to.equal(
+      trimmedLeg['Log Airline Credit'].url
     );
     expect(legData.fields['Patient Name']).to.equal(trimmedLeg['Patient Name']);
     expect(legData.fields['Patient Latest Trip']).to.equal(
