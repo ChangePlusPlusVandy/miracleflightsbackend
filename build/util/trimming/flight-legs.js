@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.trimRequest = void 0;
-const trimRequest = (request) => {
+exports.trimFlightLeg = void 0;
+const trimFlightLeg = (request) => {
     const { id, createdTime, fields } = request;
     const { Status, Airline, Passengers } = fields;
     const trimmedLeg = {
@@ -33,4 +33,4 @@ const trimRequest = (request) => {
     };
     return trimmedLeg;
 };
-exports.trimRequest = trimRequest;
+exports.trimFlightLeg = trimFlightLeg;
