@@ -1,7 +1,7 @@
 import type { FlightLegData } from '../../interfaces/legs/flight-leg.interface';
 import type { TrimmedFlightLeg } from '../../interfaces/legs/trimmed-flight-leg.interface';
 
-export const trimRequest = (request: FlightLegData): TrimmedFlightLeg => {
+export const trimFlightLeg = (request: FlightLegData): TrimmedFlightLeg => {
   const { id, createdTime, fields } = request;
 
   const { Status, Airline, Passengers } = fields;
