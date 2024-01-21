@@ -27,27 +27,43 @@ const base = new Airtable({
  * @param res - the response object
  */
 export const getAllPassengersForUser = async (req: Request, res: Response) => {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).send({ error: 'User ID is required' });
+  }
+
   try {
-    const records = await base('Passengers')
-      .select({
-        // Selecting the first 3 records in All Requests [MASTER]:
-        maxRecords: 100,
-        view: 'All Requests [MASTER]',
+    const mainPassengerRecord = await base('Passengers').find(userId.toString());
+
+    if (!mainPassengerRecord) {
+      return res.status(404).send({ error: 'Passenger not found' });
+    }
+
+    const relatedPassengerIds = mainPassengerRecord._rawJson.fields['Related Accompanying Passenger(s)'] || [];
+    const fetchRelatedPassengersPromises = relatedPassengerIds.map(passengerId =>
+      base('Passengers').find(passengerId).catch(err => {
+        console.error('Error fetching related passenger:', err);
+        return null;
       })
-      .all();
+    );
 
-    const passengers = records.map(record => {
-      return {
-        passengerId: record.get('fldsiJ7ESRQhAUwC4'), // Passenger Field ID
-      };
-    });
+    const relatedPassengerRecords = await Promise.all(fetchRelatedPassengersPromises);
+    const filteredRelatedPassengerRecords = relatedPassengerRecords.filter(record => record !== null);
 
-    res.status(200).send(passengers);
+    const allPassengers = [
+      mainPassengerRecord._rawJson.fields["Related Accompanying Passenger(s)"],
+    ].filter(passenger => passenger !== null);
+
+    res.status(200).send(allPassengers);
   } catch (error) {
     console.error(error);
     res.status(500).send({ error: 'Failed to retrieve passengers' });
   }
 };
+
+
+
 
 /**
  * This function returns a passenger for a given passengerId
@@ -113,8 +129,6 @@ export const createPassenger = async (req: Request, res: Response) => {
   // Construct the new record object, excluding computed fields
   const newRecord = {
     fields: {
-      // Add all necessary fields here, except computed ones like Passenger ID
-
       'First Name': passengerData.firstName,
       'Middle Name': passengerData.middleName || '',
       'Last Name': passengerData.lastName,
@@ -127,7 +141,7 @@ export const createPassenger = async (req: Request, res: Response) => {
       'Day Before Birthday': passengerData.dayBeforeBirthday,
       'Day After Birthday': passengerData.dayAfterBirthday,
 
-      UserId: userId, // Ensure this matches the field ID in your Airtable base
+      UserId: userId,
     },
     typecast: true,
   };
