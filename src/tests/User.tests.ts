@@ -15,8 +15,7 @@ let server: Server;
 
 // start mock server
 before(done => {
-  server = app.listen(2303, () => {
-    console.log('Mock server listening on port 2303');
+  server = app.listen(1235, () => {
     done();
   });
 });
@@ -27,27 +26,34 @@ after(done => {
   done();
 });
 
-// test queryParameterExample
-describe('pathParameterExample', () => {
-  it('should return 418 and a message with the path parameter', done => {
+// Test case
+describe('POST test/bodyParameterExample', () => {
+  it('should return a 200 response if a user exists', done => {
     chai
       .request(app)
-      .get('/path/Bob')
+      .post('/user/')
+      .send({
+        firstName: 'Boba',
+        lastName: 'Fett',
+        birthdate: '2000-12-11T19:33:38+0000',
+      })
       .end((err, res) => {
-        expect(res).to.have.status(418);
-        expect(res.text).to.equal(
-          'I cant make coffee! Thanks for your request though, Bob. Great use of a path parameter!'
-        );
+        expect(res).to.have.status(200);
         done();
       });
   });
 
-  it('should return 404 if no path parameter is provided', done => {
+  it('should return a 400 response if a user does not exists', done => {
     chai
       .request(app)
-      .get('/path')
+      .post('/user/')
+      .send({
+        firstName: 'Test',
+        lastName: 'Person',
+        birthdate: '2000-12-11T19:33:38+0000',
+      })
       .end((err, res) => {
-        expect(res).to.have.status(404);
+        expect(res).to.have.status(400);
         done();
       });
   });
