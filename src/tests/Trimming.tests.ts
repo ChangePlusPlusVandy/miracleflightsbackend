@@ -1,11 +1,9 @@
-import { trimRequest } from '../util/trimming/flight-requests';
-import { trimFlightLeg } from '../util/trimming/flight-legs';
-import { trimPassenger } from '../util/trimming/passengers';
 import {
   createTestFlightLegData,
   createTestFlightRequestData,
   createTestPassengerData,
 } from '../data/test-data';
+import { trimRequest, trimFlightLeg, trimPassenger } from '../util/trim';
 import chai, { expect } from 'chai';
 import type { FlightLegData } from '../interfaces/legs/flight-leg.interface';
 import type { FlightRequestData } from '../interfaces/requests/flight-request.interface';
