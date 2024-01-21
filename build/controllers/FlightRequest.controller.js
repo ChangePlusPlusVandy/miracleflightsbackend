@@ -27,7 +27,10 @@ const test_data_1 = require("../data/test-data");
  */
 const getAllFlightRequestsForUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     // get the userId from the query parameters
-    // const { userId } = req.query;
+    const { userId } = req.query;
+    if (userId === null) {
+        return res.status(400).json({ error: 'Passenger ID missing' });
+    }
     // create a fake array of flight requests
     const flightRequests = Array.from({ length: 10 }, () => (0, test_data_1.createTestFlightLegData)());
     // return the flight requests for the user
