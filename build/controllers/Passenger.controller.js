@@ -1,4 +1,8 @@
+/* eslint-disable */ // temporary
 "use strict";
+
+import { openAsBlob } from "fs";
+
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,9 +12,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+
+
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updatePassenger = exports.createPassenger = exports.getPassengerById = exports.getAllPassengersForUser = void 0;
 const test_data_1 = require("../data/test-data");
+
+
 /**
  * This function returns all passengers connected to a user
  *
@@ -25,15 +33,46 @@ const test_data_1 = require("../data/test-data");
  * @param req - the request object
  * @param res - the response object
  */
-const getAllPassengersForUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // get the userId from the query parameters
-    // const { userId } = req.query;
-    // create a fake array of passengers
-    const passengers = Array.from({ length: 10 }, () => (0, test_data_1.createTestPassengerData)());
-    // return the passengers for the user
-    res.status(200).send(passengers);
-});
+// Function to get all passengers for a specific user
+const getAllPassengersForUser = async (req, res) => {
+    // Extract userId from query parameters
+    const { userId } = req.query;
+
+    // Check if userId is provided, return 400 error if not
+    if (!userId) {
+        return res.status(400).send({ error: 'User ID is required' });
+    }
+
+    try {
+        // Make an API call to fetch passengers using the userId
+        const passengers = await getPassengersForUser(userId);
+
+        // If no passengers are found for the user, return a 400 error
+        if (passengers.length === 0) {
+            return res.status(400).send({ error: 'No passengers found for the user' });
+        }
+
+        // Process the received passengers data to remove unnecessary fields
+        const processedPassengers = passengers.map(passenger => {
+            return {
+                // Return only necessary fields, for example, id and name
+                id: passenger.id,
+                name: passenger.name,
+                // Add any other relevant fields here
+            };
+        });
+
+        // Send the processed passengers data in the response
+        res.status(200).send(processedPassengers);
+    } catch (error) {
+        // Catch and handle any errors during the API call, return 500 error
+        return res.status(500).send({ error: 'Failed to retrieve passengers' });
+    }
+};
+
+
 exports.getAllPassengersForUser = getAllPassengersForUser;
+
 /**
  * This function returns a passenger for a given passengerId
  *
@@ -47,15 +86,44 @@ exports.getAllPassengersForUser = getAllPassengersForUser;
  * @param req - the request object
  * @param res - the response object
  */
-const getPassengerById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // get the passengerId from the query parameters
-    // const { passengerId } = req.query;
-    // create a fake passenger
-    const passenger = (0, test_data_1.createTestPassengerData)();
-    // return the passenger
-    res.status(200).send(passenger);
-});
+// Function to get a passenger by their passengerId
+const getPassengerById = async (req, res) => {
+    // Extract passengerId from query parameters
+    const { passengerId } = req.query;
+
+    // Check if passengerId is provided, return 400 error if not
+    if (!passengerId) {
+        return res.status(400).send({ error: 'Passenger ID is required' });
+    }
+
+    try {
+        // Make an API call to fetch the passenger using the passengerId
+        const passenger = await getPassenger(passengerId);
+
+        // If no passenger is found for the given passengerId, return a 400 error
+        if (!passenger) {
+            return res.status(400).send({ error: 'No passenger found with the given ID' });
+        }
+
+        // Process the received passenger data to remove unnecessary fields
+        const processedPassenger = {
+            // Return only necessary fields, for example, id and name
+            id: passenger.id,
+            name: passenger.name,
+            // Add any other relevant fields here
+        };
+
+        // Send the processed passenger data in the response
+        res.status(200).send(processedPassenger);
+    } catch (error) {
+        // Catch and handle any errors during the API call, return 500 error
+        return res.status(500).send({ error: 'Failed to retrieve passenger' });
+    }
+};
+
 exports.getPassengerById = getPassengerById;
+
+
 /**
  * This function creates a passenger for a given user
  *
@@ -69,18 +137,34 @@ exports.getPassengerById = getPassengerById;
  * @param res - the response object
  */
 const createPassenger = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // get the userId from the query parameters
-    // const { userId } = req.query;
-    // get the passenger data from the request body
-    // const data = req.body;
-    // validate the passenger data using Joi
-    // ...
-    // create a fake passenger
-    const passenger = (0, test_data_1.createTestPassengerData)();
-    // return the created passenger
-    res.status(200).send(passenger);
+    // Get the userId from the query parameters
+    const { userId } = req.query;
+    if (!userId) {
+        return res.status(400).send({ error: 'User ID is required' });
+    }
+
+    // Get the passenger data from the request body
+    const passengerData = req.body;
+    if (!passengerData) {
+        return res.status(400).send({ error: 'Passenger data is required' });
+    }
+
+    try {
+        // Make a call to AirTable to create the passenger
+        const createdPassenger = yield createPassengerInAirTable(userId, passengerData);
+
+        // Return the created passenger
+        res.status(200).send(createdPassenger);
+    } catch (error) {
+        // Handle any errors during the API call, return 500 error
+        return res.status(500).send({ error: 'Failed to create passenger' });
+    }
 });
+
 exports.createPassenger = createPassenger;
+
+
+
 /**
  * This function updates a passenger for a given user
  *
@@ -94,15 +178,33 @@ exports.createPassenger = createPassenger;
  * @param res - the response object
  */
 const updatePassenger = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // get the passengerId from the query parameters
-    // const { passengerId } = req.query;
-    // get the passenger data from the request body
-    // const data = req.body;
-    // validate the passenger data using Joi
-    // ...
-    // create a fake passenger
-    const passenger = (0, test_data_1.createTestPassengerData)();
-    // return the updated passenger
-    res.status(200).send(passenger);
+    // Get the passengerId from the query parameters
+    const { passengerId } = req.query;
+    if (!passengerId) {
+        return res.status(400).send({ error: 'Passenger ID is required' });
+    }
+
+    // Get the passenger data from the request body
+    const passengerData = req.body;
+    if (!passengerData) {
+        return res.status(400).send({ error: 'Passenger data is required' });
+    }
+
+    try {
+        // Make a call to AirTable to update the passenger
+        const updatedPassenger = yield updatePassengerInAirTable(passengerId, passengerData);
+
+        // If no passenger is found with the given ID, return a 400 error
+        if (!updatedPassenger) {
+            return res.status(400).send({ error: 'No passenger found with the given ID' });
+        }
+
+        // Return the updated passenger
+        res.status(200).send(updatedPassenger);
+    } catch (error) {
+        // Handle any errors during the API call, return 500 error
+        return res.status(500).send({ error: 'Failed to update passenger' });
+    }
 });
+
 exports.updatePassenger = updatePassenger;

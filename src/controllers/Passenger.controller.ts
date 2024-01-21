@@ -1,5 +1,15 @@
+/* eslint-disable */
+
 import { createTestPassengerData } from '../data/test-data';
 import type { Request, Response } from 'express';
+import Airtable from 'airtable';
+import dotenv from 'dotenv';
+import type { FieldSet, Record } from 'airtable';
+dotenv.config();
+
+const base = new Airtable({
+  apiKey: process.env.AIRTABLE_API_KEY || '',
+}).base('appwPsfAb6U8CV3mf');
 
 /**
  * This function returns all passengers connected to a user
@@ -10,20 +20,33 @@ import type { Request, Response } from 'express';
  *   If there are no passengers for the user return a 400. (hint: use the AirTable API, see TestControllers/retrievePassengers.ts for an example)
  *  Another hint - we will be filtering by the "Passenger ID" field in the AirTable
  * 3. Remove any unnecessary data from the passengers (there is a lot of data in the AirTable response we don't need)
+ * Don't worry about filtering unnecessary data, just return the whole record for now.
  * 4. Return the passengers for the user
  *
  * @param req - the request object
  * @param res - the response object
  */
 export const getAllPassengersForUser = async (req: Request, res: Response) => {
-  // get the userId from the query parameters
-  // const { userId } = req.query;
+  try {
+    const records = await base('Passengers')
+      .select({
+        // Selecting the first 3 records in All Requests [MASTER]:
+        maxRecords: 100,
+        view: 'All Requests [MASTER]',
+      })
+      .all();
 
-  // create a fake array of passengers
-  const passengers = Array.from({ length: 10 }, () => createTestPassengerData());
+    const passengers = records.map(record => {
+      return {
+        passengerId: record.get('fldsiJ7ESRQhAUwC4'), // Passenger Field ID
+      };
+    });
 
-  // return the passengers for the user
-  res.status(200).send(passengers);
+    res.status(200).send(passengers);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: 'Failed to retrieve passengers' });
+  }
 };
 
 /**
@@ -40,14 +63,28 @@ export const getAllPassengersForUser = async (req: Request, res: Response) => {
  * @param res - the response object
  */
 export const getPassengerById = async (req: Request, res: Response) => {
-  // get the passengerId from the query parameters
-  // const { passengerId } = req.query;
+  const { passengerId } = req.query;
 
-  // create a fake passenger
-  const passenger = createTestPassengerData();
+  if (!passengerId) {
+    return res.status(400).send({ error: 'Passenger ID is required' });
+  }
 
-  // return the passenger
-  res.status(200).send(passenger);
+  try {
+    const record = await base('Passengers').find(passengerId.toString());
+
+    if (!record) {
+      return res.status(404).send({ error: 'Passenger not found' });
+    }
+
+    // Return the entire record
+    res.status(200).send(record._rawJson);
+  } catch (error) {
+    console.error(error);
+    // if (error.message.includes('NOT_FOUND')) {
+    //   return res.status(404).send({ error: 'Passenger not found' });
+    // }
+    res.status(500).send({ error: 'Server error' });
+  }
 };
 
 /**
@@ -63,20 +100,46 @@ export const getPassengerById = async (req: Request, res: Response) => {
  * @param res - the response object
  */
 export const createPassenger = async (req: Request, res: Response) => {
-  // get the userId from the query parameters
-  // const { userId } = req.query;
+  const userId = req.query.userId;
+  const passengerData = req.body;
 
-  // get the passenger data from the request body
-  // const data = req.body;
+  if (!userId) {
+    return res.status(400).send({ error: 'User ID is required' });
+  }
+  if (!passengerData) {
+    return res.status(400).send({ error: 'Passenger data is required' });
+  }
 
-  // validate the passenger data using Joi
-  // ...
+  // Construct the new record object, excluding computed fields
+  const newRecord = {
+    fields: {
+      // Add all necessary fields here, except computed ones like Passenger ID
 
-  // create a fake passenger
-  const passenger = createTestPassengerData();
+      'First Name': passengerData.firstName,
+      'Middle Name': passengerData.middleName || '',
+      'Last Name': passengerData.lastName,
+      Email: passengerData.email,
+      Type: passengerData.type,
+      '# of Booked Flight Requests': passengerData.numBookedFlightRequests,
+      'Multi-patient family?': passengerData.multiPatientFamily,
+      Relationship: passengerData.relationship,
+      Birthday: passengerData.birthday,
+      'Day Before Birthday': passengerData.dayBeforeBirthday,
+      'Day After Birthday': passengerData.dayAfterBirthday,
 
-  // return the created passenger
-  res.status(200).send(passenger);
+      UserId: userId, // Ensure this matches the field ID in your Airtable base
+    },
+    typecast: true,
+  };
+
+  try {
+    // const createdRecords = await base('Passengers').create([newRecord]);
+    // const createdPassenger = createdRecords[0];
+    // res.status(200).send({ createdPassenger });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: 'Failed to create passenger' });
+  }
 };
 
 /**
