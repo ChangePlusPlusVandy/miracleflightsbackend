@@ -17,7 +17,7 @@ import type { Request, Response } from 'express';
  */
 export const getAllPassengersForUser = async (req: Request, res: Response) => {
   // get the userId from the query parameters
-  // const { userId } = req.query;
+  //const { userId } = req.query;
 
   // create a fake array of passengers
   const passengers = Array.from({ length: 10 }, () => createTestPassengerData());

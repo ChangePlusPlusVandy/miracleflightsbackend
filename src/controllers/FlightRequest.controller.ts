@@ -20,7 +20,11 @@ export const getAllFlightRequestsForUser = async (
   res: Response
 ) => {
   // get the userId from the query parameters
-  // const { userId } = req.query;
+  const { userId } = req.query;
+
+  if (userId === null) {
+    return res.status(400).json({ error: 'Passenger ID missing' });
+  }
 
   // create a fake array of flight requests
   const flightRequests = Array.from({ length: 10 }, () =>
