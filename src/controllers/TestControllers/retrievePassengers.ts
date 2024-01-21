@@ -1,3 +1,4 @@
+import logger from '../../util/logger';
 import Airtable from 'airtable';
 import dotenv from 'dotenv';
 import type { FieldSet, Record } from 'airtable';
@@ -7,8 +8,6 @@ dotenv.config();
 // Example endpoint that uses the AirTable API to retrieve all the passengers in the example db
 // THIS IS A TEST ENDPOINT AND IT IS STILL A WORK IN PROGRESS
 export const retrievePassengers = async (req: Request, res: Response) => {
-  console.log(process.env.AIRTABLE_API_KEY);
-
   const base = new Airtable({
     apiKey: process.env.AIRTABLE_API_KEY || '',
   }).base('appwPsfAb6U8CV3mf');
@@ -21,7 +20,7 @@ export const retrievePassengers = async (req: Request, res: Response) => {
     })
     .firstPage(async function (err, records) {
       if (err) {
-        console.error(err);
+        logger.error(err);
         return;
       }
       if (records) {
@@ -30,7 +29,7 @@ export const retrievePassengers = async (req: Request, res: Response) => {
             ? record.fields['Flight Legs']
             : []
         ) as string[][];
-        console.log('Retrieved Flight Leg IDs', flightLegs);
+        logger.info('Retrieved Flight Leg IDs', flightLegs);
 
         try {
           const trips = [] as Record<FieldSet>[][];
@@ -48,7 +47,7 @@ export const retrievePassengers = async (req: Request, res: Response) => {
 
           await Promise.all(promises);
 
-          console.log('Retrieved trips of flight legs', trips);
+          logger.info('Retrieved trips of flight legs', trips);
 
           // Send the response or do further processing
           res.status(200).send(trips);
