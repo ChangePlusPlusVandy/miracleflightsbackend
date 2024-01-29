@@ -26,7 +26,8 @@ const base = new Airtable({
  *
  * @param req - the request object
  * @param res - the response object
- */export const getAllPassengersForUser = async (req: Request, res: Response) => {
+ */
+export const getAllPassengersForUser = async (req: Request, res: Response) => {
   const { userId } = req.query;
 
   if (!userId) {
@@ -34,22 +35,22 @@ const base = new Airtable({
   }
 
   try {
-    // Fetching the main passenger record
     const mainPassengerRecord = await base('Passengers').find(userId.toString());
+
     if (!mainPassengerRecord) {
       return res.status(404).send({ error: 'Passenger not found' });
     }
 
-    // Extracting the relevant data from the main passenger record
-    const mainPassengerData = mainPassengerRecord._rawJson.fields;
+    // Directly use the 'Related Accompanying Passenger(s)' field or default to an empty array
+    const allPassengers = mainPassengerRecord._rawJson.fields['Related Accompanying Passenger(s)'] || [];
 
-    // Sending the relevant data of the main passenger
-    res.status(200).send(mainPassengerData);
+    res.status(200).send(allPassengers); // Send the array of passenger IDs directly
   } catch (error) {
-    logger.info(error);
-    res.status(500).send({ error: 'Failed to retrieve passenger data' });
+    console.error(error);
+    res.status(500).send({ error: 'Failed to retrieve passengers' });
   }
 };
+
 
 /**
  * This function returns a passenger for a given passengerId

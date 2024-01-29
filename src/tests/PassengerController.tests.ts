@@ -1,61 +1,77 @@
-import chai, { expect } from 'chai';
+// PassengerController.tests.ts
+
+import chai from 'chai';
 import chaiHttp from 'chai-http';
-import { configureServer } from '../config/server.config';
-import dotenv from 'dotenv';
-import type { Server } from 'http';
+import { expect } from 'chai';
+import sinon from 'sinon';
+import Airtable from 'airtable';
+import { configureServer } from '../config/server.config'
 
-dotenv.config();
 chai.use(chaiHttp);
-chai.should();
 
-const app = configureServer();
-let server: Server;
+describe('PassengerController Tests', () => {
+  let server;
+  let airtableBaseStub;
 
-before(done => {
-  server = app.listen(1234, () => {
-    done();
-  });
-});
+  before(done => {
+    // Setup your Express application
+    const app = configureServer();
 
-after(done => {
-  server.close();
-  done();
-});
-
-// Mock Airtable API
-const airtableMock = nock('https://api.airtable.com')
-  .persist() 
-  .get('/v0/appwPsfAb6U8CV3mf/Passengers')
-  .reply(200, {
-    records: [
-      // your mocked records here
-    ],
+    // Start your server on a test port
+    server = app.listen(2301, () => {
+      console.log('Test server running on port 2301');
+      done();
+    });
   });
 
-describe('GET /passengers/user', () => {
-  it('should return all passengers for the user', done => {
-    const userId = 'testUserId';
-
-    chai
-      .request(app)
-      .get(`/passengers/user?userId=${userId}`)
-      .end((err, res) => {
-        expect(res).to.have.status(200);
-        // Perform more expectations: check if the response body has the passengers data
-        done();
-      });
+  after(done => {
+    // Close the server after tests
+    server.close(() => {
+      console.log('Test server closed');
+      done();
+    });
   });
 
-  it('should return 400 if userId is not provided', done => {
-    chai
-      .request(app)
-      .get('/passengers/user')
-      .end((err, res) => {
-        expect(res).to.have.status(400);
-        expect(res.body.error).to.equal('User ID is required');
-        done();
-      });
+  beforeEach(() => {
+    // Stub the Airtable base method to prevent actual API calls
+    airtableBaseStub = sinon.stub(Airtable.prototype, 'base').callsFake(() => ({
+      table: () => ({
+        select: () => ({
+          all: () => Promise.resolve([
+            { id: 'recLFdznCJOUPEx72', fields: { /* Your fields here */ } },
+            { id: 'recjkNdBSRe5JsUI7', fields: { /* Your fields here */ } },
+            { id: 'recSH24ZWh4UUd8iT', fields: { /* Your fields here */ } }
+          ])
+        })
+      })
+    }));
   });
 
-  // Add more test cases as needed
+  afterEach(() => {
+    airtableBaseStub.restore();
+  });
+
+  describe('GET /passenger', () => {
+    it('should return a list of passenger IDs for a given userId', (done) => {
+      chai.request(server)
+        .get('/passenger?userId=recV1y3bJr9eb2U5W')
+        .end((err, res) => {
+          expect(res).to.have.status(200);
+          expect(res.body).to.be.an('array');
+          expect(res.body).to.deep.equal(['recLFdznCJOUPEx72', 'recjkNdBSRe5JsUI7', 'recSH24ZWh4UUd8iT']);
+          done();
+        });
+    });
+
+    it('should return a 400 response if userId is not provided', (done) => {
+      chai.request(server)
+        .get('/passenger') // Omitting the userId query parameter
+        .end((err, res) => {
+          expect(res).to.have.status(400);
+          expect(res.body.error).to.equal('User ID is required');
+          done();
+        });
+    });
+  });
+  // testing for other endpoints.
 });
