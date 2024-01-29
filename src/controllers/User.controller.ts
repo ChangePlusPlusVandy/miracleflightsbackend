@@ -1,13 +1,28 @@
+import { trimPassenger } from '../util/trim';
 import Airtable from 'airtable';
 import Joi from 'joi';
 import type { Request, Response } from 'express';
+import type { PassengerData } from '../interfaces/passenger/passenger.interface';
 
+/**
+ * This function returns all passengers connected to a user
+ *
+ * Steps to complete:
+ * 1. Get the first name, last name, and birthdate from the request body, if it doesn't exist return a 400
+ * 2. Make a call to AirTable to check if the user exists, if that fails return a 500 (hint, use try/catch)
+ *    Another hint - we will be filtering by the "Passenger ID" field in the AirTable
+ * 3. Remove any unnecessary data from the passenger (there is a lot of data in the AirTable response we don't need)
+ * 4. Return the passengers for the user
+ *
+ * @param req - the request object
+ * @param res - the response object
+ */
 export const createUser = async (req: Request, res: Response) => {
   // given a first name, last name, and birthdate, check if a user exists in the database
   const schema = Joi.object({
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
-    birthdate: Joi.date().required(),
+    birthdate: Joi.string().required(),
   });
 
   // validate the request body
@@ -39,5 +54,7 @@ export const createUser = async (req: Request, res: Response) => {
     return res.status(400).send('User does not exist');
   }
 
-  return res.status(200).send(passenger[0].fields);
+  return res
+    .status(200)
+    .send(trimPassenger(passenger[0] as unknown as PassengerData));
 };

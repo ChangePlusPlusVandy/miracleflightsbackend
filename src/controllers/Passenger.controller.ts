@@ -1,4 +1,5 @@
 /* eslint-disable */
+import logger from '../util/logger';
 
 import { createTestPassengerData } from '../data/test-data';
 import type { Request, Response } from 'express';
@@ -25,8 +26,7 @@ const base = new Airtable({
  *
  * @param req - the request object
  * @param res - the response object
- */
-export const getAllPassengersForUser = async (req: Request, res: Response) => {
+ */export const getAllPassengersForUser = async (req: Request, res: Response) => {
   const { userId } = req.query;
 
   if (!userId) {
@@ -34,36 +34,22 @@ export const getAllPassengersForUser = async (req: Request, res: Response) => {
   }
 
   try {
+    // Fetching the main passenger record
     const mainPassengerRecord = await base('Passengers').find(userId.toString());
-
     if (!mainPassengerRecord) {
       return res.status(404).send({ error: 'Passenger not found' });
     }
 
-    const relatedPassengerIds = mainPassengerRecord._rawJson.fields['Related Accompanying Passenger(s)'] || [];
-    const fetchRelatedPassengersPromises = relatedPassengerIds.map(passengerId =>
-      base('Passengers').find(passengerId).catch(err => {
-        console.error('Error fetching related passenger:', err);
-        return null;
-      })
-    );
+    // Extracting the relevant data from the main passenger record
+    const mainPassengerData = mainPassengerRecord._rawJson.fields;
 
-    const relatedPassengerRecords = await Promise.all(fetchRelatedPassengersPromises);
-    const filteredRelatedPassengerRecords = relatedPassengerRecords.filter(record => record !== null);
-
-    const allPassengers = [
-      mainPassengerRecord._rawJson.fields["Related Accompanying Passenger(s)"],
-    ].filter(passenger => passenger !== null);
-
-    res.status(200).send(allPassengers);
+    // Sending the relevant data of the main passenger
+    res.status(200).send(mainPassengerData);
   } catch (error) {
-    console.error(error);
-    res.status(500).send({ error: 'Failed to retrieve passengers' });
+    logger.info(error);
+    res.status(500).send({ error: 'Failed to retrieve passenger data' });
   }
 };
-
-
-
 
 /**
  * This function returns a passenger for a given passengerId
@@ -95,7 +81,7 @@ export const getPassengerById = async (req: Request, res: Response) => {
     // Return the entire record
     res.status(200).send(record._rawJson);
   } catch (error) {
-    console.error(error);
+    logger.info(error);
     // if (error.message.includes('NOT_FOUND')) {
     //   return res.status(404).send({ error: 'Passenger not found' });
     // }
@@ -125,8 +111,6 @@ export const createPassenger = async (req: Request, res: Response) => {
   if (!passengerData) {
     return res.status(400).send({ error: 'Passenger data is required' });
   }
-
-  // Construct the new record object, excluding computed fields
   const newRecord = {
     fields: {
       'First Name': passengerData.firstName,
@@ -151,7 +135,7 @@ export const createPassenger = async (req: Request, res: Response) => {
     // const createdPassenger = createdRecords[0];
     // res.status(200).send({ createdPassenger });
   } catch (error) {
-    console.error(error);
+    logger.info(error);
     res.status(500).send({ error: 'Failed to create passenger' });
   }
 };
