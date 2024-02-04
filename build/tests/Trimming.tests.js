@@ -106,7 +106,8 @@ describe('Trimming', () => {
         (0, chai_1.expect)(legData.fields['AirTable Record ID']).to.equal(trimmedLeg['AirTable Record ID']);
         (0, chai_1.expect)(legData.fields['Request AirTable Record ID']).to.equal(trimmedLeg['Request AirTable Record ID']);
         (0, chai_1.expect)(legData.fields['Passenger AirTable Record IDs']).to.equal(trimmedLeg['Passenger AirTable Record IDs']);
-        (0, chai_1.expect)(legData.fields['Log Airline Credit']).to.equal(trimmedLeg['Log Airline Credit']);
+        (0, chai_1.expect)(legData.fields['Log Airline Credit'].label).to.equal(trimmedLeg['Log Airline Credit'].label);
+        (0, chai_1.expect)(legData.fields['Log Airline Credit'].url).to.equal(trimmedLeg['Log Airline Credit'].url);
         (0, chai_1.expect)(legData.fields['Patient Name']).to.equal(trimmedLeg['Patient Name']);
         (0, chai_1.expect)(legData.fields['Patient Latest Trip']).to.equal(trimmedLeg['Patient Latest Trip']);
         (0, chai_1.expect)(legData.fields['Is Latest Trip']).to.equal(trimmedLeg['Is Latest Trip']);
