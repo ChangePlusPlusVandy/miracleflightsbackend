@@ -1,4 +1,9 @@
 import { createTestPassengerData } from '../data/test-data';
+import logger from '../util/logger';
+import { trimPassenger } from '../util/trim';
+import Airtable from 'airtable';
+import type { FieldSet, Record } from 'airtable';
+import type { PassengerData } from '../interfaces/passenger/passenger.interface';
 import type { Request, Response } from 'express';
 
 /**
@@ -19,11 +24,47 @@ export const getAllPassengersForUser = async (req: Request, res: Response) => {
   // get the userId from the query parameters
   // const { userId } = req.query;
 
-  // create a fake array of passengers
-  const passengers = Array.from({ length: 10 }, () => createTestPassengerData());
+  const { id } = req.query;
 
-  // return the passengers for the user
-  res.status(200).send(passengers);
+  if (!id) {
+    return res.status(400).json({ error: 'Passenger ID missing' });
+  }
+
+  logger.info(id);
+
+  const base = new Airtable({
+    apiKey: process.env.AIRTABLE_API_KEY || '',
+  }).base('appwPsfAb6U8CV3mf');
+
+  try {
+    await base('Passengers').find(
+      id.toString(),
+      async function (err: any, record: any | undefined) {
+        if (err) {
+          logger.error(err);
+          return;
+        } else {
+          const accompPassengers = [] as Record<FieldSet>[];
+          const accompanyingPassengersPromise = record._rawJson.fields[
+            'Related Accompanying Passenger(s)'
+          ].map(async (id: string) => {
+            const passenger = await base('Passengers').find(id.toString());
+            accompPassengers.push(passenger);
+          });
+          await Promise.all(accompanyingPassengersPromise);
+          const trimmedPassengers = accompPassengers.map(
+            (passenger: Record<FieldSet>) =>
+              trimPassenger(passenger._rawJson as unknown as PassengerData)
+          );
+          res.send(trimmedPassengers);
+        }
+      }
+    );
+  } catch (err: any) {
+    // if that fails return a 500 (hint, use try/catch)
+    console.error(err);
+    return res.status(500).json({ error: 'Error fetching record' });
+  }
 };
 
 /**
