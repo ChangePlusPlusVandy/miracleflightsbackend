@@ -22,7 +22,6 @@ import type { Request, Response } from 'express';
  */
 export const getAllPassengersForUser = async (req: Request, res: Response) => {
   // get the userId from the query parameters
-  // const { userId } = req.query;
 
   const { id } = req.query;
 
@@ -37,6 +36,7 @@ export const getAllPassengersForUser = async (req: Request, res: Response) => {
   }).base('appwPsfAb6U8CV3mf');
 
   try {
+    // make a call to AirTable to get all passengers for the user
     await base('Passengers').find(
       id.toString(),
       async function (err: any, record: any | undefined) {
@@ -44,6 +44,7 @@ export const getAllPassengersForUser = async (req: Request, res: Response) => {
           logger.error(err);
           return;
         } else {
+          // get related passengers information
           const accompPassengers = [] as Record<FieldSet>[];
           const accompanyingPassengersPromise = record._rawJson.fields[
             'Related Accompanying Passenger(s)'
@@ -51,12 +52,13 @@ export const getAllPassengersForUser = async (req: Request, res: Response) => {
             const passenger = await base('Passengers').find(id.toString());
             accompPassengers.push(passenger);
           });
+          // Remove any unnecessary data from the passengers
           await Promise.all(accompanyingPassengersPromise);
           const trimmedPassengers = accompPassengers.map(
             (passenger: Record<FieldSet>) =>
               trimPassenger(passenger._rawJson as unknown as PassengerData)
           );
-          res.send(trimmedPassengers);
+          return res.send(trimmedPassengers);
         }
       }
     );

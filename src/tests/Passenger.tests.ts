@@ -51,4 +51,26 @@ describe('GET /passenger', () => {
         done();
       });
   });
+  it('should be an accompanying passenger', done => {
+    chai
+      .request(app)
+      .get('/passenger')
+      .query({ id: 'recleNlsBm3dheZHy' })
+      .end((err, res) => {
+        expect(res.body[1]['Gender']).to.equal('Male');
+        expect(res).to.have.status(200);
+        done();
+      });
+  });
+  it('should be an accompanying passenger', done => {
+    chai
+      .request(app)
+      .get('/passenger')
+      .query({ id: 'recleNlsBm3dheZHy' })
+      .end((err, res) => {
+        expect(res.body[2]['Relationship']).to.equal('Father');
+        expect(res).to.have.status(200);
+        done();
+      });
+  });
 });
