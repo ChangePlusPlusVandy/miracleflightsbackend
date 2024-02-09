@@ -16,6 +16,7 @@ let server: Server;
 // start mock server
 before(done => {
   server = app.listen(3483, () => {
+    console.log('AIRTABLE KEY: ' + process.env.AIRTABLE_API_KEY);
     done();
   });
 });
