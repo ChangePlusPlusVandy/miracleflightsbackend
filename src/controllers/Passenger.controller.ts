@@ -36,7 +36,7 @@ export const getAllPassengersForUser = async (req: Request, res: Response) => {
     // make a call to AirTable to get all passengers for the user
     await base('Passengers').find(
       id.toString(),
-      async function (err: any, record: any | undefined) {
+      async (err: any, record: any | undefined) => {
         if (err) {
           logger.error(err);
           return;
@@ -46,21 +46,25 @@ export const getAllPassengersForUser = async (req: Request, res: Response) => {
           const accompanyingPassengersPromise = record._rawJson.fields[
             'Related Accompanying Passenger(s)'
           ].map(async (id: string) => {
+            // map through the related passengers and get the passenger information for each one
             const passenger = await base('Passengers').find(id.toString());
             accompPassengers.push(passenger);
           });
+
           // Remove any unnecessary data from the passengers
           await Promise.all(accompanyingPassengersPromise);
           const trimmedPassengers = accompPassengers.map(
             (passenger: Record<FieldSet>) =>
               trimPassenger(passenger._rawJson as unknown as PassengerData)
           );
+
+          // return the passengers for the user
           return res.send(trimmedPassengers);
         }
       }
     );
   } catch (err: any) {
-    // if that fails return a 500 (hint, use try/catch)
+    // if that fails return a 500
     console.error(err);
     return res.status(500).json({ error: 'Error fetching record' });
   }
