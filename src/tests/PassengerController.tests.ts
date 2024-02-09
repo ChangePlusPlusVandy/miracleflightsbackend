@@ -1,30 +1,28 @@
-// PassengerController.tests.ts
-
 import chai from 'chai';
 import chaiHttp from 'chai-http';
-import { expect } from 'chai';
 import sinon from 'sinon';
 import Airtable from 'airtable';
-import { configureServer } from '../config/server.config'
+import { configureServer } from '../config/server.config';
 
+const expect = chai.expect;
 chai.use(chaiHttp);
 
 describe('PassengerController Tests', () => {
   let server;
   let airtableBaseStub;
 
-  before(done => {
-    // Setup your Express application
+  before((done) => {
+    // Setup  Express application
     const app = configureServer();
 
-    // Start your server on a test port
+    // Start  server on a test port
     server = app.listen(2301, () => {
       console.log('Test server running on port 2301');
       done();
     });
   });
 
-  after(done => {
+  after((done) => {
     // Close the server after tests
     server.close(() => {
       console.log('Test server closed');
@@ -38,9 +36,36 @@ describe('PassengerController Tests', () => {
       table: () => ({
         select: () => ({
           all: () => Promise.resolve([
-            { id: 'recLFdznCJOUPEx72', fields: { /* Your fields here */ } },
-            { id: 'recjkNdBSRe5JsUI7', fields: { /* Your fields here */ } },
-            { id: 'recSH24ZWh4UUd8iT', fields: { /* Your fields here */ } }
+            {
+              id: 'recLFdznCJOUPEx72',
+              fields: {
+                Name: 'Morales, Jefferson',
+                DateOfBirth: '2023-07-26',
+                AirTableRecordID: 'recLFdznCJOUPEx72',
+                Type: 'Accompanying Passenger',
+                NumberOfBookedFlightRequests: 1
+              }
+            },
+            {
+              id: 'recjkNdBSRe5JsUI7',
+              fields: {
+                Name: 'Gilchrist, Jessie',
+                DateOfBirth: '1980-01-01',
+                AirTableRecordID: 'recjkNdBSRe5JsUI7',
+                Type: 'Accompanying Passenger',
+                NumberOfBookedFlightRequests: 0
+              }
+            },
+            {
+              id: 'recSH24ZWh4UUd8iT',
+              fields: {
+                Name: 'Gilchrist, Milo',
+                DateOfBirth: '2014-01-01',
+                AirTableRecordID: 'recSH24ZWh4UUd8iT',
+                Type: 'Accompanying Passenger',
+                NumberOfBookedFlightRequests: 0
+              }
+            }
           ])
         })
       })
@@ -48,6 +73,7 @@ describe('PassengerController Tests', () => {
   });
 
   afterEach(() => {
+    // Restore the stub to its original state
     airtableBaseStub.restore();
   });
 
@@ -73,5 +99,6 @@ describe('PassengerController Tests', () => {
         });
     });
   });
-  // testing for other endpoints.
+
+  // tests for other endpoints here.
 });
