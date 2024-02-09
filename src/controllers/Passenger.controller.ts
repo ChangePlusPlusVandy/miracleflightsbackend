@@ -22,14 +22,11 @@ import type { Request, Response } from 'express';
  */
 export const getAllPassengersForUser = async (req: Request, res: Response) => {
   // get the userId from the query parameters
-
   const { id } = req.query;
 
   if (!id) {
     return res.status(400).json({ error: 'Passenger ID missing' });
   }
-
-  logger.info(id);
 
   const base = new Airtable({
     apiKey: process.env.AIRTABLE_API_KEY || '',

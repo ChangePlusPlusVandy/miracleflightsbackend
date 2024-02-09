@@ -29,7 +29,6 @@ export const retrievePassengers = async (req: Request, res: Response) => {
             ? record.fields['Flight Legs']
             : []
         ) as string[][];
-        logger.info('Retrieved Flight Leg IDs', flightLegs);
 
         try {
           const trips = [] as Record<FieldSet>[][];
@@ -46,8 +45,6 @@ export const retrievePassengers = async (req: Request, res: Response) => {
           });
 
           await Promise.all(promises);
-
-          logger.info('Retrieved trips of flight legs', trips);
 
           // Send the response or do further processing
           res.status(200).send(trips);
