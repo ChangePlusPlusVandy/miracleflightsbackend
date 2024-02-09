@@ -1,4 +1,9 @@
 import { createTestPassengerData } from '../data/test-data';
+import logger from '../util/logger';
+import { trimPassenger } from '../util/trim';
+import Airtable from 'airtable';
+import type { FieldSet, Record } from 'airtable';
+import type { PassengerData } from '../interfaces/passenger/passenger.interface';
 import type { Request, Response } from 'express';
 
 /**
@@ -17,13 +22,52 @@ import type { Request, Response } from 'express';
  */
 export const getAllPassengersForUser = async (req: Request, res: Response) => {
   // get the userId from the query parameters
-  // const { userId } = req.query;
+  const { id } = req.query;
 
-  // create a fake array of passengers
-  const passengers = Array.from({ length: 10 }, () => createTestPassengerData());
+  if (!id) {
+    return res.status(400).json({ error: 'Passenger ID missing' });
+  }
 
-  // return the passengers for the user
-  res.status(200).send(passengers);
+  const base = new Airtable({
+    apiKey: process.env.AIRTABLE_API_KEY || '',
+  }).base('appwPsfAb6U8CV3mf');
+
+  try {
+    // make a call to AirTable to get all passengers for the user
+    await base('Passengers').find(
+      id.toString(),
+      async (err: any, record: any | undefined) => {
+        if (err) {
+          logger.error(err);
+          return;
+        } else {
+          // get related passengers information
+          const accompPassengers = [] as Record<FieldSet>[];
+          const accompanyingPassengersPromise = record._rawJson.fields[
+            'Related Accompanying Passenger(s)'
+          ].map(async (id: string) => {
+            // map through the related passengers and get the passenger information for each one
+            const passenger = await base('Passengers').find(id.toString());
+            accompPassengers.push(passenger);
+          });
+
+          // Remove any unnecessary data from the passengers
+          await Promise.all(accompanyingPassengersPromise);
+          const trimmedPassengers = accompPassengers.map(
+            (passenger: Record<FieldSet>) =>
+              trimPassenger(passenger._rawJson as unknown as PassengerData)
+          );
+
+          // return the passengers for the user
+          return res.send(trimmedPassengers);
+        }
+      }
+    );
+  } catch (err: any) {
+    // if that fails return a 500
+    console.error(err);
+    return res.status(500).json({ error: 'Error fetching record' });
+  }
 };
 
 /**
