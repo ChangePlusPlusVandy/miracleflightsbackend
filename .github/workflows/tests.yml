@@ -12,6 +12,8 @@ jobs:
   backend-tests:
     runs-on: ubuntu-latest
 
+    environment: test
+
     strategy:
       matrix:
         node-version: [19.x]
@@ -31,7 +33,6 @@ jobs:
         env:
           PORT: ${{ secrets.PORT }}
           HOST: ${{ secrets.HOST }}
-          ENVIROMENT: ${{ secrets.ENVIROMENT }}
           AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
 
   prettier-check:
