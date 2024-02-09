@@ -10,4 +10,6 @@ const port = Number(process.env.PORT);
 // start our server
 app.listen(port, async () => {
   logger.info(`[SERVER] App is running at http://localhost:${port}`);
+
+  console.log('AIRTABLE KEY: ' + process.env.AIRTABLE_API_KEY);
 });
