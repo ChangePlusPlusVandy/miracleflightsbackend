@@ -6,6 +6,8 @@ export interface TrimmedPassenger {
   'Last Name': string;
   'Date of Birth': string;
   Gender: string;
+  Relationship?;
+  string;
   Street: string;
   Country: string;
   Email: string;
