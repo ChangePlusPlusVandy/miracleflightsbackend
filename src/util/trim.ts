@@ -15,6 +15,7 @@ export const trimPassenger = (passenger: PassengerData): TrimmedPassenger => {
     id: id,
     createdTime: createdTime,
     Type: Type,
+    Relationship: fields['Relationship'],
     'First Name': fields['First Name'],
     'Last Name': fields['Last Name'],
     'Date of Birth': fields['Date of Birth'],
@@ -37,6 +38,7 @@ export const trimPassenger = (passenger: PassengerData): TrimmedPassenger => {
     'Full Name': fields['Full Name'],
     Age: Age,
     'Latest Trip': fields['Latest Trip'],
+    string: undefined,
   };
 
   return trimmedPassenger;
