@@ -38,14 +38,7 @@ export const getAllFlightRequestsForUser = async (
 };
 
 /**
- * This function returns a flight request for a given flightRequestId
- *
- * Steps to complete:
- * 1. Get the flightRequestId from the query parameters, if it doesn't exist return a 400
- * 2. Make a call to AirTable to get the flight request, if that fails return a 500 (hint, use try/catch)
- *   If there is no flight request for the flightRequestId return a 400. (hint: use the AirTable API, see TestControllers/retrievePassengers.ts for an example)
- * 3. Remove any unnecessary data from the flight requests (there is a lot of data in the AirTable response we don't need)
- * 4. Return the flight request
+ * Get a flight request by its ID
  *
  * @param req - the request object
  * @param res - the response object
@@ -77,25 +70,43 @@ export const getFlightRequestById = async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error(err);
     return res.status(500).json({ error: 'Error fetching record' });
-  } // const legRecords: Record<FieldSet>[] = [];
-  // flightLegIdArray.map(legId => {
-  //   try {
-  //     base('Flight Legs').find(legId.toString(), function (err, record) {
-  //       if (err) {
-  //         throw err;
-  //       }
-  //       if (!record) {
-  //         throw err;
-  //       }
-  //       console.log('Retrieved', record.id);
-  //       legRecords.push(record);
-  //     });
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // });
-  // return the flight leg records????
-  // res.status(200).send(legRecords);
+  }
+};
+
+/**
+ * Get the flight legs for a given flight request ID
+ *
+ * @param req - the request object
+ * @param res - the response object
+ */
+export const getFlightLegsById = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  let flightLegs;
+
+  if (!id) {
+    return res.status(400).json({ error: 'Flight Request ID missing' });
+  }
+
+  const base = new Airtable({
+    apiKey: process.env.AIRTABLE_API_KEY || '',
+  }).base('appwPsfAb6U8CV3mf');
+
+  try {
+    flightLegs = await base('Flight Legs')
+      .select({
+        filterByFormula: `{Request AirTable Record ID} = "${id.toString()}"`,
+      })
+      .all();
+
+    if (flightLegs.length === 0) {
+      return res.status(400).json({ error: 'No record found' });
+    }
+  } catch (err: any) {
+    console.error(err);
+    return res.status(500).json({ error: 'Error fetching record' });
+  }
+
+  return res.status(200).send(flightLegs);
 };
 
 /**
