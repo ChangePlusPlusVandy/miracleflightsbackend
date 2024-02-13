@@ -14,15 +14,17 @@ export const retrievePassengers = async (req: Request, res: Response) => {
 
   base('Flight Requests (Trips)')
     .select({
-      // Selecting the first 3 records in All Requests [MASTER]:
+      // Selecting the first 100 records in All Requests [MASTER]:
       maxRecords: 100,
       view: 'All Requests [MASTER]',
     })
+
     .firstPage(async function (err, records) {
       if (err) {
         logger.error(err);
         return;
       }
+
       if (records) {
         const flightLegs = records.map(record =>
           record.fields['Flight Legs'] !== undefined

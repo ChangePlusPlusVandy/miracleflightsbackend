@@ -9,6 +9,7 @@ import {
   getFlightRequestById,
   createFlightRequest,
   updateFlightRequest,
+  getFlightLegsById,
 } from '../controllers/FlightRequest.controller';
 import { queryParameterExample } from '../controllers/TestControllers/queryParameterExample';
 import { pathParameterExample } from '../controllers/TestControllers/pathParameterExample';
@@ -39,6 +40,7 @@ const routes = (app: Express) => {
   /* Flight Request Controller Routes */
   app.get('/requests/', getAllFlightRequestsForUser);
   app.get('/requests/:id', getFlightRequestById);
+  app.get('/requests/:id/legs', getFlightLegsById);
   app.post('/requests/', createFlightRequest);
   app.put('/requests/:id', updateFlightRequest);
 

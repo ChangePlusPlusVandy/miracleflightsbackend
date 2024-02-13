@@ -7,15 +7,7 @@ import type { PassengerData } from '../interfaces/passenger/passenger.interface'
 import type { Request, Response } from 'express';
 
 /**
- * This function returns all passengers connected to a user
- *
- * Steps to complete:
- * 1. Get the userId from the query parameters, if it doesn't exist return a 400
- * 2. Make a call to AirTable to get all passengers for the user, if that fails return a 500 (hint, use try/catch)
- *   If there are no passengers for the user return a 400. (hint: use the AirTable API, see TestControllers/retrievePassengers.ts for an example)
- *  Another hint - we will be filtering by the "Passenger ID" field in the AirTable
- * 3. Remove any unnecessary data from the passengers (there is a lot of data in the AirTable response we don't need)
- * 4. Return the passengers for the user
+ * Get all of the related passengers for a user (people they have flown with in the past)
  *
  * @param req - the request object
  * @param res - the response object

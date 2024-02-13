@@ -27,7 +27,7 @@ after(done => {
 });
 
 // Test case
-describe('POST test/bodyParameterExample', () => {
+describe('EXAMPLE test/bodyParameterExample', () => {
   it('should return a 418 response', done => {
     chai
       .request(app)
@@ -51,7 +51,7 @@ describe('POST test/bodyParameterExample', () => {
 });
 
 // test queryParameterExample
-describe('queryParameterExample', () => {
+describe('EXAMPLE queryParameterExample', () => {
   it('should return 418 and a message with the query parameter', done => {
     chai
       .request(app)
@@ -78,7 +78,7 @@ describe('queryParameterExample', () => {
 });
 
 // test queryParameterExample
-describe('pathParameterExample', () => {
+describe('EXAMPLE pathParameterExample', () => {
   it('should return 418 and a message with the path parameter', done => {
     chai
       .request(app)
