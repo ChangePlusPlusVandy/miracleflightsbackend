@@ -51,7 +51,7 @@ export const retrievePassengers = async (req: Request, res: Response) => {
           // Send the response or do further processing
           res.status(200).send(trips);
         } catch (err) {
-          console.error(err);
+          logger.info(err);
         }
       }
     });

@@ -1,10 +1,17 @@
-import { createTestPassengerData } from '../data/test-data';
+/* eslint-disable */
 import logger from '../util/logger';
+import { createTestPassengerData } from '../data/test-data';
 import { trimPassenger } from '../util/trim';
-import Airtable from 'airtable';
-import type { FieldSet, Record } from 'airtable';
 import type { PassengerData } from '../interfaces/passenger/passenger.interface';
 import type { Request, Response } from 'express';
+import Airtable from 'airtable';
+import dotenv from 'dotenv';
+import type { FieldSet, Record } from 'airtable';
+dotenv.config();
+
+const base = new Airtable({
+  apiKey: process.env.AIRTABLE_API_KEY || '',
+}).base('appwPsfAb6U8CV3mf');
 
 /**
  * Get all of the related passengers for a user (people they have flown with in the past)
@@ -76,14 +83,24 @@ export const getAllPassengersForUser = async (req: Request, res: Response) => {
  * @param res - the response object
  */
 export const getPassengerById = async (req: Request, res: Response) => {
-  // get the passengerId from the query parameters
-  // const { passengerId } = req.query;
+  const { userId } = req.query;
 
-  // create a fake passenger
-  const passenger = createTestPassengerData();
+  if (!userId) {
+    return res.status(400).send({ error: 'User ID is required' });
+  }
 
-  // return the passenger
-  res.status(200).send(passenger);
+  try {
+    const passengerRecord = await base('Passengers').find(userId.toString());
+
+    if (!passengerRecord) {
+      return res.status(404).send({ error: 'Passenger not found' });
+    }
+
+    res.status(200).send(passengerRecord); // Send the array of passenger IDs directly
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: 'Failed to retrieve passengers' });
+  }
 };
 
 /**
@@ -99,20 +116,42 @@ export const getPassengerById = async (req: Request, res: Response) => {
  * @param res - the response object
  */
 export const createPassenger = async (req: Request, res: Response) => {
-  // get the userId from the query parameters
-  // const { userId } = req.query;
+  const userId = req.query.userId;
+  const passengerData = req.body;
 
-  // get the passenger data from the request body
-  // const data = req.body;
+  if (!userId) {
+    return res.status(400).send({ error: 'User ID is required' });
+  }
+  if (!passengerData) {
+    return res.status(400).send({ error: 'Passenger data is required' });
+  }
+  const newRecord = {
+    fields: {
+      'First Name': passengerData.firstName,
+      'Middle Name': passengerData.middleName || '',
+      'Last Name': passengerData.lastName,
+      Email: passengerData.email,
+      Type: passengerData.type,
+      '# of Booked Flight Requests': passengerData.numBookedFlightRequests,
+      'Multi-patient family?': passengerData.multiPatientFamily,
+      Relationship: passengerData.relationship,
+      Birthday: passengerData.birthday,
+      'Day Before Birthday': passengerData.dayBeforeBirthday,
+      'Day After Birthday': passengerData.dayAfterBirthday,
 
-  // validate the passenger data using Joi
-  // ...
+      UserId: userId,
+    },
+    typecast: true,
+  };
 
-  // create a fake passenger
-  const passenger = createTestPassengerData();
-
-  // return the created passenger
-  res.status(200).send(passenger);
+  try {
+    // const createdRecords = await base('Passengers').create([newRecord]);
+    // const createdPassenger = createdRecords[0];
+    // res.status(200).send({ createdPassenger });
+  } catch (error) {
+    logger.info(error);
+    res.status(500).send({ error: 'Failed to create passenger' });
+  }
 };
 
 /**
