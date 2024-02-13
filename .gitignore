@@ -1,8 +1,4 @@
 node_modules/
-<<<<<<< HEAD
-.env
-=======
 .env
 build/
 .nyc_output/
->>>>>>> main
