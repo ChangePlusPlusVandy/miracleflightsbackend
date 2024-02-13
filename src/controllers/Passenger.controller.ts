@@ -83,27 +83,23 @@ export const getAllPassengersForUser = async (req: Request, res: Response) => {
  * @param res - the response object
  */
 export const getPassengerById = async (req: Request, res: Response) => {
-  const { passengerId } = req.query;
+  const { userId } = req.query;
 
-  if (!passengerId) {
-    return res.status(400).send({ error: 'Passenger ID is required' });
+  if (!userId) {
+    return res.status(400).send({ error: 'User ID is required' });
   }
 
   try {
-    const record = await base('Passengers').find(passengerId.toString());
+    const passengerRecord = await base('Passengers').find(userId.toString());
 
-    if (!record) {
+    if (!passengerRecord) {
       return res.status(404).send({ error: 'Passenger not found' });
     }
 
-    // Return the entire record
-    res.status(200).send(record._rawJson);
+    res.status(200).send(passengerRecord); // Send the array of passenger IDs directly
   } catch (error) {
-    logger.info(error);
-    // if (error.message.includes('NOT_FOUND')) {
-    //   return res.status(404).send({ error: 'Passenger not found' });
-    // }
-    res.status(500).send({ error: 'Server error' });
+    console.error(error);
+    res.status(500).send({ error: 'Failed to retrieve passengers' });
   }
 };
 
