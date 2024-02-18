@@ -13,7 +13,7 @@ import type { TrimmedFlightRequest } from '../interfaces/requests/trimmed-flight
 import type { TrimmedPassenger } from '../interfaces/passenger/trimmed-passenger.interface';
 chai.should();
 
-describe('Trimming', () => {
+describe('UTIL Trimming', () => {
   it('should properly trim request', () => {
     const requestData: FlightRequestData = createTestFlightRequestData();
     const trimmedRequest: TrimmedFlightRequest = trimRequest(requestData);

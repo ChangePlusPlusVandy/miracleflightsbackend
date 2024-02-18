@@ -4,8 +4,17 @@ import type { TrimmedPassenger } from '../../interfaces/passenger/trimmed-passen
 export const trimPassenger = (passenger: PassengerData): TrimmedPassenger => {
   const { id, createdTime, fields } = passenger;
 
-  const { Type, Gender, Street, Country, Email, Ethnicity, Diagnosis, Age } =
-    fields;
+  const {
+    Type,
+    Gender,
+    Street,
+    City,
+    Country,
+    Email,
+    Ethnicity,
+    Diagnosis,
+    Age,
+  } = fields;
 
   const trimmedPassenger: TrimmedPassenger = {
     id: id,
@@ -16,6 +25,7 @@ export const trimPassenger = (passenger: PassengerData): TrimmedPassenger => {
     'Date of Birth': fields['Date of Birth'],
     Gender: Gender,
     Street: Street,
+    City: City,
     Country: Country,
     Email: Email,
     'Household Income': fields['Household Income'],

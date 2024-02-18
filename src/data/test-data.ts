@@ -35,6 +35,7 @@ export const createTestPassengerData = (
       'Date of Birth': birthday,
       Gender: faker.helpers.arrayElement(['Female', 'Male']),
       Street: faker.location.streetAddress(),
+      City: faker.location.city(),
       Country: faker.location.country(),
       Email: faker.internet.email({
         firstName: firstName,

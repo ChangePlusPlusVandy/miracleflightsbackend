@@ -14,22 +14,23 @@ export const retrievePassengers = async (req: Request, res: Response) => {
 
   base('Flight Requests (Trips)')
     .select({
-      // Selecting the first 3 records in All Requests [MASTER]:
+      // Selecting the first 100 records in All Requests [MASTER]:
       maxRecords: 100,
       view: 'All Requests [MASTER]',
     })
+
     .firstPage(async function (err, records) {
       if (err) {
         logger.error(err);
         return;
       }
+
       if (records) {
         const flightLegs = records.map(record =>
           record.fields['Flight Legs'] !== undefined
             ? record.fields['Flight Legs']
             : []
         ) as string[][];
-        logger.info('Retrieved Flight Leg IDs', flightLegs);
 
         try {
           const trips = [] as Record<FieldSet>[][];
@@ -47,12 +48,10 @@ export const retrievePassengers = async (req: Request, res: Response) => {
 
           await Promise.all(promises);
 
-          logger.info('Retrieved trips of flight legs', trips);
-
           // Send the response or do further processing
           res.status(200).send(trips);
         } catch (err) {
-          console.error(err);
+          logger.info(err);
         }
       }
     });

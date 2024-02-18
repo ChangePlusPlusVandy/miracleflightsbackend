@@ -12,6 +12,8 @@ jobs:
   backend-tests:
     runs-on: ubuntu-latest
 
+    environment: test
+
     strategy:
       matrix:
         node-version: [19.x]
@@ -28,6 +30,10 @@ jobs:
 
       - name: Run testing suite
         run: npm run test
+        env:
+          PORT: ${{ secrets.PORT }}
+          HOST: ${{ secrets.HOST }}
+          AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
 
   prettier-check:
     runs-on: ubuntu-latest
