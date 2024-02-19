@@ -24,6 +24,7 @@ export interface TrimmedPassenger {
   '# of Booked Flight Requests': number;
   'Birth Month': string;
   'Full Name': string;
+  'Passenger Names (from All Flight Legs)': string[];
   Age: number;
   'Latest Trip': string;
 }

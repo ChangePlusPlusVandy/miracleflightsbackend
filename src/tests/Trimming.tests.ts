@@ -258,6 +258,9 @@ describe('UTIL Trimming', () => {
     expect(passengerData.fields['Full Name']).to.equal(
       trimmedPassenger['Full Name']
     );
+    expect(
+      passengerData.fields['Passenger Names (from All Flight Legs)']
+    ).to.equal(trimmedPassenger['Passenger Names (from All Flight Legs)']);
     expect(passengerData.fields.Age).to.equal(trimmedPassenger.Age);
     expect(passengerData.fields['Latest Trip']).to.equal(
       trimmedPassenger['Latest Trip']
