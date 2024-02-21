@@ -13,6 +13,11 @@ export interface TrimmedPassenger {
   Email: string;
   'Household Income': number;
   'Household Size': number;
+  'Cell Phone': string;
+  'Home Phone': string;
+  Education: string;
+  'Marital Status': string;
+  Employment: string;
   Ethnicity: string[];
   'Military Service': string;
   'Military Member': string[];
