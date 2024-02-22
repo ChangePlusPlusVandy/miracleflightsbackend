@@ -83,7 +83,7 @@ export const getAllPassengersForUser = async (req: Request, res: Response) => {
  * @param res - the response object
  */
 export const getPassengerById = async (req: Request, res: Response) => {
-  const { userId } = req.query;
+  const { id: userId } = req.params;
 
   if (!userId) {
     return res.status(400).json({ error: 'Passenger ID missing' });
@@ -98,8 +98,7 @@ export const getPassengerById = async (req: Request, res: Response) => {
       userId.toString(),
       async (err: any, record: any | undefined) => {
         if (err) {
-          logger.error(err);
-          return;
+          return res.status(400).send({ error: 'No passenger found' });
         } else {
           // remove any unnecessary data from the passenger
           const trimmedPassenger = trimPassenger(
@@ -112,7 +111,7 @@ export const getPassengerById = async (req: Request, res: Response) => {
       }
     );
   } catch (err: any) {
-    console.error(err);
+    logger.error(err);
     return res.status(500).json({ error: 'Error fetching record' });
   }
 };

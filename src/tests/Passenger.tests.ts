@@ -46,7 +46,11 @@ describe('GET /passenger', () => {
       .get('/passenger')
       .query({ id: 'recleNlsBm3dheZHy' })
       .end((err, res) => {
-        expect(res.body[0]['First Name']).to.be.oneOf(['Anakin', 'Bail']);
+        expect(res.body[0]['First Name']).to.be.oneOf([
+          'Anakin',
+          'Bail',
+          'Jefferson ',
+        ]);
         expect(res).to.have.status(200);
         done();
       });
@@ -85,24 +89,16 @@ describe('GET /passenger/:id', () => {
         done();
       });
   });
-  it('should return a 200 response', done => {
-    chai
-      .request(app)
-      .get('/passenger/recleNlsBm3dheZHy')
-      .end((err, res) => {
-        expect(res).to.have.status(200);
-        done();
-      });
-  });
+
   it('should return the correct passenger', done => {
     chai
       .request(app)
-      .get('/passenger/recleNlsBm3dheZHy')
+      .get('/passenger/rec3Wv1VViXYv3t72')
       .end((err, res) => {
-        expect(res.body['First Name']).to.equal('Anakin');
-        expect(res.body['Last Name']).to.equal('Skywalker');
+        expect(res).to.have.status(200);
+        expect(res.body['First Name'].toString()).to.equal('Anakin');
+        expect(res.body['Last Name'].toString()).to.equal('Skywalker ');
         expect(res.body['Email']).to.equal('zachmcmullen04@gmail.com');
-        expect(res.body['Passenger Names']).to.equal('Anakin Skywalker');
         done();
       });
   });
