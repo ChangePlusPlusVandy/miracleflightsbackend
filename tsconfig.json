@@ -1,20 +1,15 @@
 {
-    "compilerOptions": {
-      "forceConsistentCasingInFileNames": true,
-      "module": "CommonJS",
-      "moduleResolution": "node",
-      "esModuleInterop": true,
-      "outDir": "./build",
-      "rootDir": "./src",
-      "target": "es6",
-      "skipLibCheck": true,
-      "strict": true,
-      "noImplicitAny": false,
-    },
-    "ts-node": {
-      "files": true,
-      "esm": true
-    },
-    
-  }
+  "compilerOptions": {
+    "forceConsistentCasingInFileNames": true,
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "outDir": "./build",
+    "target": "es6",
+    "skipLibCheck": true,
+    "strict": true,
+    "noImplicitAny": false,
+  },
+
+}
   

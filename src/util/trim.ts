@@ -8,8 +8,17 @@ import type { TrimmedFlightRequest } from '../interfaces/requests/trimmed-flight
 export const trimPassenger = (passenger: PassengerData): TrimmedPassenger => {
   const { id, createdTime, fields } = passenger;
 
-  const { Type, Gender, Street, Country, Email, Ethnicity, Diagnosis, Age } =
-    fields;
+  const {
+    Type,
+    Gender,
+    Street,
+    Country,
+    Email,
+    Ethnicity,
+    Diagnosis,
+    Age,
+    City,
+  } = fields;
 
   const trimmedPassenger: TrimmedPassenger = {
     id: id,
@@ -21,6 +30,7 @@ export const trimPassenger = (passenger: PassengerData): TrimmedPassenger => {
     'Date of Birth': fields['Date of Birth'],
     Gender: Gender,
     Street: Street,
+    City: City,
     Country: Country,
     Email: Email,
     'Household Income': fields['Household Income'],
@@ -36,9 +46,15 @@ export const trimPassenger = (passenger: PassengerData): TrimmedPassenger => {
     '# of Booked Flight Requests': fields['# of Booked Flight Requests'],
     'Birth Month': fields['Birth Month'],
     'Full Name': fields['Full Name'],
+    'Passenger Names (from All Flight Legs)':
+      fields['Passenger Names (from All Flight Legs)'],
     Age: Age,
     'Latest Trip': fields['Latest Trip'],
-    string: undefined,
+    'Cell Phone': fields['Cell Phone'],
+    'Home Phone': fields['Home Phone'],
+    Education: fields['Education'],
+    'Marital Status': fields['Marital Status'],
+    Employment: fields['Employment'],
   };
 
   return trimmedPassenger;

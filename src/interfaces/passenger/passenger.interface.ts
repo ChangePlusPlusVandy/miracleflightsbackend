@@ -8,10 +8,16 @@ export interface PassengerData {
     'Date of Birth': string;
     Gender: string;
     Street: string;
+    City: string;
     Country: string;
     Email: string;
+    'Cell Phone': string;
+    'Home Phone': string;
+    Education: string;
     'Household Income': number;
     'Household Size': number;
+    'Marital Status': string;
+    Employment: string;
     Ethnicity: string[];
     'Military Service': string;
     'Military Member': string[];
