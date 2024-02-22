@@ -7,6 +7,7 @@ import type { Request, Response } from 'express';
 import Airtable from 'airtable';
 import dotenv from 'dotenv';
 import type { FieldSet, Record } from 'airtable';
+import Joi from 'joi';
 dotenv.config();
 
 const base = new Airtable({
@@ -150,14 +151,53 @@ export const createPassenger = async (req: Request, res: Response) => {
  * @param res - the response object
  */
 export const updatePassenger = async (req: Request, res: Response) => {
-  // get the passengerId from the query parameters
-  // const { passengerId } = req.query;
+  const { id } = req.params;
+  const passengerData = req.body;
 
-  // get the passenger data from the request body
-  // const data = req.body;
+  if (!id) {
+    return res.status(400).send({ error: 'User ID is required' });
+  }
+  if (!passengerData) {
+    return res.status(400).send({ error: 'Passenger data is required' });
+  }
 
-  // validate the passenger data using Joi
-  // ...
+  const schema = Joi.object({
+    street: Joi.string().optional(),
+    city: Joi.string().optional(),
+    country: Joi.string().optional(),
+    email: Joi.string().email().optional(),
+    cellPhone: Joi.string().optional(),
+    homePhone: Joi.string().optional(),
+    education: Joi.string().optional(),
+    householdIncome: Joi.number().optional(),
+    householdSize: Joi.number().optional(),
+    maritalStatus: Joi.string().optional(),
+    employment: Joi.string().optional,
+    militaryService: Joi.string().optional(),
+    militaryMember: Joi.array().optional(),
+  });
+
+  const base = new Airtable({
+    apiKey: process.env.AIRTABLE_API_KEY || '',
+  }).base('appwPsfAb6U8CV3mf');
+
+  try {
+    // make a call to AirTable to update the passenger
+    const response = await base('Passengers').update(
+      [{ id, fields: passengerData }],
+      async (err, records) => {
+        if (err) {
+          console.error(err);
+          return;
+        }
+        res.status(200).send(records);
+      }
+    );
+  } catch (err: any) {
+    // if that fails return a 500
+    console.error(err);
+    return res.status(500).json({ error: 'Error updating' });
+  }
 
   // create a fake passenger
   const passenger = createTestPassengerData();
