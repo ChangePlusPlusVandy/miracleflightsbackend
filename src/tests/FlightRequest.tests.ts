@@ -26,6 +26,52 @@ after(done => {
   done();
 });
 
+// Test getAllFlightRequestsForUser
+describe('GET /requests/', () => {
+  it('should return requests with the correct passenger name, flight request ID, and flight leg departure time for a given user', done => {
+    chai
+      .request(app)
+      .get('/requests/?userId=recV1y3bJr9eb2U5W') // Assuming userId is passed as a query parameter
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        const requests = res.body;
+
+        // Assuming we're testing the first request in the array for simplicity
+        const firstRequest = requests[0];
+        expect(firstRequest).to.have.property('id').that.is.a('string');
+        expect(firstRequest)
+          .to.have.nested.property('fields.Patient Name')
+          .that.equals('Stormie  Gilchrist');
+        expect(firstRequest)
+          .to.have.nested.property('fields.Request ID')
+          .that.is.a('string');
+        expect(firstRequest)
+          .to.have.nested.property('fields.Request ID')
+          .that.equals(
+            '2022-12-08 | In Progress | Gilchrist, Stormie | 2014-06-21'
+          );
+
+        // Assuming flightLegs is an array and we're testing the first flight leg for simplicity
+        const firstFlightLeg = firstRequest.flightLegs[0];
+        expect(firstFlightLeg)
+          .to.have.nested.property('fields.Departure Date/Time')
+          .that.equals('2023-02-06');
+
+        done();
+      });
+  });
+
+  it('should return a 400 response for invalid or missing ID', done => {
+    chai
+      .request(app)
+      .get('/requests/?userId=blahblahblah')
+      .end((err, res) => {
+        expect(res).to.have.status(400);
+        done();
+      });
+  });
+});
+
 // Test getFlightRequestByID
 describe('GET /requests', () => {
   it('should return the correct request ID, origin airport, destination airport, and passenger name', done => {

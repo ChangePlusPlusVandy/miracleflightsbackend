@@ -5,6 +5,10 @@ import dotenv from 'dotenv';
 import type { Request, Response } from 'express';
 dotenv.config();
 
+const base = new Airtable({
+  apiKey: process.env.AIRTABLE_API_KEY || '',
+}).base('appwPsfAb6U8CV3mf');
+
 /**
  * This function returns all flight requests for a given user
  *
@@ -23,18 +27,53 @@ export const getAllFlightRequestsForUser = async (
   req: Request,
   res: Response
 ) => {
-  // get the userId from the query parameters
   const { userId } = req.query;
 
-  if (userId === null) {
+  if (!userId) {
     return res.status(400).json({ error: 'Passenger ID missing' });
-  } // create a fake array of flight requests
+  }
 
-  const flightRequests = Array.from({ length: 10 }, () =>
-    createTestFlightLegData()
-  ); // return the flight requests for the user
+  try {
+    // query Airtable for flight requests for the user ID
+    const flightRequests = await base('Flight Requests (Trips)')
+      .select({
+        filterByFormula: `{Patient AirTable Record ID} = "${userId}"`,
+      })
+      .all();
 
-  res.status(200).send(flightRequests);
+    if (flightRequests.length === 0) {
+      return res
+        .status(400)
+        .json({ error: 'No flight requests found for this user' });
+    }
+
+    // Retrieve flight legs for each flight request and format the data
+    const formattedFlightRequests = await Promise.all(
+      flightRequests.map(async request => {
+        const flightLegs = await base('Flight Legs')
+          .select({
+            filterByFormula: `{Request AirTable Record ID} = "${request.id}"`,
+          })
+          .all();
+
+        // Format the flight request data and include the corresponding flight legs
+        return {
+          id: request.id,
+          createdTime: request._rawJson.createdTime,
+          fields: request.fields,
+          flightLegs: flightLegs.map(leg => ({
+            id: leg.id,
+            fields: leg.fields,
+          })),
+        };
+      })
+    );
+
+    return res.status(200).json(formattedFlightRequests);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Error fetching flight requests' });
+  }
 };
 
 /**
