@@ -1,5 +1,6 @@
 /* eslint-disable no-irregular-whitespace */
 import { createTestFlightLegData } from '../data/test-data';
+import logger from '../util/logger';
 import Airtable from 'airtable';
 import dotenv from 'dotenv';
 import type { Request, Response } from 'express';
@@ -68,7 +69,7 @@ export const getFlightRequestById = async (req: Request, res: Response) => {
       }
     );
   } catch (err: any) {
-    console.error(err);
+    logger.error(err);
     return res.status(500).json({ error: 'Error fetching record' });
   }
 };
@@ -102,7 +103,7 @@ export const getFlightLegsById = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'No record found' });
     }
   } catch (err: any) {
-    console.error(err);
+    logger.error(err);
     return res.status(500).json({ error: 'Error fetching record' });
   }
 

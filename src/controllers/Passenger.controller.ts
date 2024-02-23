@@ -65,7 +65,7 @@ export const getAllPassengersForUser = async (req: Request, res: Response) => {
     );
   } catch (err: any) {
     // if that fails return a 500
-    console.error(err);
+    logger.error(err);
     return res.status(500).json({ error: 'Error fetching record' });
   }
 };
@@ -162,20 +162,25 @@ export const updatePassenger = async (req: Request, res: Response) => {
   }
 
   const schema = Joi.object({
-    street: Joi.string().optional(),
-    city: Joi.string().optional(),
-    country: Joi.string().optional(),
-    email: Joi.string().email().optional(),
-    cellPhone: Joi.string().optional(),
-    homePhone: Joi.string().optional(),
-    education: Joi.string().optional(),
-    householdIncome: Joi.number().optional(),
-    householdSize: Joi.number().optional(),
-    maritalStatus: Joi.string().optional(),
-    employment: Joi.string().optional,
-    militaryService: Joi.string().optional(),
-    militaryMember: Joi.array().optional(),
+    Street: Joi.string().optional(),
+    City: Joi.string().optional(),
+    State: Joi.string().optional(),
+    Country: Joi.string().optional(),
+    Email: Joi.string().email().optional(),
+    'Cell Phone': Joi.string().optional(),
+    'Home Phone': Joi.string().optional(),
+    Education: Joi.string().optional(),
+    'Household Income': Joi.number().optional(),
+    'Household Size': Joi.number().optional(),
+    'Marital Status': Joi.string().optional(),
+    Employment: Joi.string().optional,
+    'Military Service': Joi.string().optional(),
+    'Military Member': Joi.array().optional(),
   });
+
+  if (schema.validate(passengerData).error) {
+    return res.status(400).send({ error: 'Invalid passenger data' });
+  }
 
   const base = new Airtable({
     apiKey: process.env.AIRTABLE_API_KEY || '',
@@ -183,11 +188,11 @@ export const updatePassenger = async (req: Request, res: Response) => {
 
   try {
     // make a call to AirTable to update the passenger
-    const response = await base('Passengers').update(
+    await base('Passengers').update(
       [{ id, fields: passengerData }],
       async (err, records) => {
         if (err) {
-          console.error(err);
+          logger.error(err);
           return;
         }
         res.status(200).send(records);
@@ -195,13 +200,7 @@ export const updatePassenger = async (req: Request, res: Response) => {
     );
   } catch (err: any) {
     // if that fails return a 500
-    console.error(err);
+    logger.error(err);
     return res.status(500).json({ error: 'Error updating' });
   }
-
-  // create a fake passenger
-  const passenger = createTestPassengerData();
-
-  // return the updated passenger
-  res.status(200).send(passenger);
 };
