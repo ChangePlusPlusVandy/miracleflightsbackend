@@ -7,6 +7,7 @@ import type { Request, Response } from 'express';
 import Airtable from 'airtable';
 import dotenv from 'dotenv';
 import type { FieldSet, Record } from 'airtable';
+import Joi from 'joi';
 dotenv.config();
 
 const base = new Airtable({
@@ -64,7 +65,7 @@ export const getAllPassengersForUser = async (req: Request, res: Response) => {
     );
   } catch (err: any) {
     // if that fails return a 500
-    console.error(err);
+    logger.error(err);
     return res.status(500).json({ error: 'Error fetching record' });
   }
 };
@@ -150,18 +151,56 @@ export const createPassenger = async (req: Request, res: Response) => {
  * @param res - the response object
  */
 export const updatePassenger = async (req: Request, res: Response) => {
-  // get the passengerId from the query parameters
-  // const { passengerId } = req.query;
+  const { id } = req.params;
+  const passengerData = req.body;
 
-  // get the passenger data from the request body
-  // const data = req.body;
+  if (!id) {
+    return res.status(400).send({ error: 'User ID is required' });
+  }
+  if (!passengerData) {
+    return res.status(400).send({ error: 'Passenger data is required' });
+  }
 
-  // validate the passenger data using Joi
-  // ...
+  const schema = Joi.object({
+    Street: Joi.string().optional(),
+    City: Joi.string().optional(),
+    State: Joi.string().optional(),
+    Country: Joi.string().optional(),
+    Email: Joi.string().email().optional(),
+    'Cell Phone': Joi.string().optional(),
+    'Home Phone': Joi.string().optional(),
+    Education: Joi.string().optional(),
+    'Household Income': Joi.number().optional(),
+    'Household Size': Joi.number().optional(),
+    'Marital Status': Joi.string().optional(),
+    Employment: Joi.string().optional,
+    'Military Service': Joi.string().optional(),
+    'Military Member': Joi.array().optional(),
+  });
 
-  // create a fake passenger
-  const passenger = createTestPassengerData();
+  if (schema.validate(passengerData).error) {
+    return res.status(400).send({ error: 'Invalid passenger data' });
+  }
 
-  // return the updated passenger
-  res.status(200).send(passenger);
+  const base = new Airtable({
+    apiKey: process.env.AIRTABLE_API_KEY || '',
+  }).base('appwPsfAb6U8CV3mf');
+
+  try {
+    // make a call to AirTable to update the passenger
+    await base('Passengers').update(
+      [{ id, fields: passengerData }],
+      async (err, records) => {
+        if (err) {
+          logger.error(err);
+          return;
+        }
+        res.status(200).send(records);
+      }
+    );
+  } catch (err: any) {
+    // if that fails return a 500
+    logger.error(err);
+    return res.status(500).json({ error: 'Error updating' });
+  }
 };
