@@ -169,20 +169,20 @@ export const createPassenger = async (req: Request, res: Response) => {
         {
           fields: {
             Type: 'Accompanying Passenger',
-            Relationship: passengerData.relationship,
-            'First Name': passengerData.firstName,
-            'Last Name': passengerData.lastName,
-            'Date of Birth': passengerData.birthday,
-            Diagnoses: [],
-            Gender: passengerData.Gender,
-            Street: passengerData.Street,
-            City: passengerData.City,
-            State: passengerData.State,
-            Zip: passengerData.Zip,
-            Country: passengerData.Country,
-            'Cell Phone': passengerData.Cell,
-            Email: passengerData.Email,
-            Waiver: passengerData.Waiver,
+            Relationship: passengerData.fields.Relationship,
+            'First Name': passengerData.fields['First Name'],
+            'Last Name': passengerData.fields['Last Name'],
+            'Date of Birth': passengerData.fields['Date of Birth'],
+            Diagnoses: passengerData.fields.Diagnoses || [],
+            Gender: passengerData.fields.Gender,
+            Street: passengerData.fields.Street,
+            City: passengerData.fields.City,
+            State: passengerData.fields.State,
+            Zip: passengerData.fields.Zip,
+            Country: passengerData.fields.Country,
+            'Cell Phone': passengerData.fields['Cell Phone'],
+            Email: passengerData.fields.Email,
+            Waiver: passengerData.fields.Waiver,
             'All Flight Requests (Pass 2)': [],
             'All Flight Legs': [],
             'Related Patient(s)': [],
@@ -240,7 +240,6 @@ export const createPassenger = async (req: Request, res: Response) => {
         relatedPassengers = [];
       }
 
-      // Assuming you want to add a simple string like "John Doe" to the list
       const passengerName = `${passengerData['First Name']} ${passengerData['Last Name']}`;
       //relatedPassengers.push(passengerName);
       relatedPassengers = relatedPassengers + passengerName;
