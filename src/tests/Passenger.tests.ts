@@ -29,11 +29,11 @@ after(done => {
 // describe is group of tests
 // it is the actual test itself
 // Test case
-describe('GET /passenger', () => {
+describe('GET /passenger/accompanying', () => {
   it('should return a 400 response', done => {
     chai
       .request(app)
-      .get('/passenger')
+      .get('/passenger/accompanying')
       .query({ id: '' })
       .end((err, res) => {
         expect(res).to.have.status(400);
@@ -43,7 +43,7 @@ describe('GET /passenger', () => {
   it('should be an accompanying passenger', done => {
     chai
       .request(app)
-      .get('/passenger')
+      .get('/passenger/accompanying')
       .query({ id: 'recleNlsBm3dheZHy' })
       .end((err, res) => {
         expect(res.body[0]['First Name']).to.be.oneOf([
@@ -58,7 +58,7 @@ describe('GET /passenger', () => {
   it('should be an accompanying passenger', done => {
     chai
       .request(app)
-      .get('/passenger')
+      .get('/passenger/accompanying')
       .query({ id: 'recleNlsBm3dheZHy' })
       .end((err, res) => {
         expect(res.body[1]['Gender']).to.equal('Male');
@@ -69,7 +69,7 @@ describe('GET /passenger', () => {
   it('should be an accompanying passenger', done => {
     chai
       .request(app)
-      .get('/passenger')
+      .get('/passenger/accompanying')
       .query({ id: 'recleNlsBm3dheZHy' })
       .end((err, res) => {
         expect(res.body[2]['Relationship']).to.be.oneOf(['Father', undefined]);
