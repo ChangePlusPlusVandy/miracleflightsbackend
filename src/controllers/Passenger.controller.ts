@@ -84,7 +84,37 @@ export const getAllPassengersForUser = async (req: Request, res: Response) => {
  * @param res - the response object
  */
 export const getPassengerById = async (req: Request, res: Response) => {
-  // const { userId } = req.query;
+  const { id: userId } = req.params;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'Passenger ID missing' });
+  }
+
+  const base = new Airtable({
+    apiKey: process.env.AIRTABLE_API_KEY || '',
+  }).base('appwPsfAb6U8CV3mf');
+
+  try {
+    await base('Passengers').find(
+      userId.toString(),
+      async (err: any, record: any | undefined) => {
+        if (err) {
+          return res.status(400).send({ error: 'No passenger found' });
+        } else {
+          // remove any unnecessary data from the passenger
+          const trimmedPassenger = trimPassenger(
+            record._rawJson as unknown as PassengerData
+          );
+
+          // return the passenger
+          return res.send(trimmedPassenger);
+        }
+      }
+    );
+  } catch (err: any) {
+    logger.error(err);
+    return res.status(500).json({ error: 'Error fetching record' });
+  }
 };
 
 /**

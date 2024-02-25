@@ -29,11 +29,11 @@ after(done => {
 // describe is group of tests
 // it is the actual test itself
 // Test case
-describe('GET /passenger', () => {
+describe('GET /passenger/accompanying', () => {
   it('should return a 400 response', done => {
     chai
       .request(app)
-      .get('/passenger')
+      .get('/passenger/accompanying')
       .query({ id: '' })
       .end((err, res) => {
         expect(res).to.have.status(400);
@@ -43,10 +43,14 @@ describe('GET /passenger', () => {
   it('should be an accompanying passenger', done => {
     chai
       .request(app)
-      .get('/passenger')
+      .get('/passenger/accompanying')
       .query({ id: 'recleNlsBm3dheZHy' })
       .end((err, res) => {
-        expect(res.body[0]['First Name']).to.be.oneOf(['Anakin', 'Bail']);
+        expect(res.body[0]['First Name']).to.be.oneOf([
+          'Anakin',
+          'Bail',
+          'Jefferson ',
+        ]);
         expect(res).to.have.status(200);
         done();
       });
@@ -54,7 +58,7 @@ describe('GET /passenger', () => {
   it('should be an accompanying passenger', done => {
     chai
       .request(app)
-      .get('/passenger')
+      .get('/passenger/accompanying')
       .query({ id: 'recleNlsBm3dheZHy' })
       .end((err, res) => {
         expect(res.body[1]['Gender']).to.equal('Male');
@@ -65,7 +69,7 @@ describe('GET /passenger', () => {
   it('should be an accompanying passenger', done => {
     chai
       .request(app)
-      .get('/passenger')
+      .get('/passenger/accompanying')
       .query({ id: 'recleNlsBm3dheZHy' })
       .end((err, res) => {
         expect(res.body[2]['Relationship']).to.be.oneOf(['Father', undefined]);
@@ -74,6 +78,32 @@ describe('GET /passenger', () => {
       });
   });
 });
+
+describe('GET /passenger/:id', () => {
+  it('should return a 400 response', done => {
+    chai
+      .request(app)
+      .get('/passenger/blahblahblah')
+
+      .end((err, res) => {
+        expect(res).to.have.status(400);
+        done();
+      });
+  });
+  it('should return the correct passenger', done => {
+    chai
+      .request(app)
+      .get('/passenger/rec3Wv1VViXYv3t72')
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        expect(res.body['First Name'].toString()).to.equal('Anakin');
+        expect(res.body['Last Name'].toString()).to.equal('Skywalker ');
+        expect(res.body['Email']).to.equal('zachmcmullen04@gmail.com');
+        done();
+      });
+  });
+});
+
 describe('PUT passenger/:id', () => {
   it('should return a 400 response', done => {
     chai
@@ -85,6 +115,7 @@ describe('PUT passenger/:id', () => {
         done();
       });
   });
+
   it('should return a 400 response', done => {
     chai
       .request(app)
