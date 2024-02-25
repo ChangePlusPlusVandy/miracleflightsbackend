@@ -73,76 +73,76 @@ describe('GET /passenger', () => {
         done();
       });
   });
-  describe('PUT passenger/:id', () => {
-    it('should return a 400 response', done => {
-      chai
-        .request(app)
-        .put('/passenger/junk')
-        .send({ id: '' })
-        .end((err, res) => {
-          expect(res).to.have.status(400);
-          done();
-        });
-    });
-    it('should return a 400 response', done => {
-      chai
-        .request(app)
-        .put('/passenger/junk')
-        .send({ passengerData: '' })
-        .end((err, res) => {
-          expect(res).to.have.status(400);
-          done();
-        });
-    });
-    it('should update street for anakin skywalker', done => {
-      chai
-        .request(app)
-        .put('/passenger/rec3Wv1VViXYv3t72')
-        .send({ Street: 'HELLOSTREET' })
-        .end((err, res) => {
-          expect(res).to.have.status(200);
-          done();
-        });
-    });
-    it('should update marital status for princess leia', done => {
-      chai
-        .request(app)
-        .put('/passenger/recaUmd14q3YOP3Uf')
-        .send({ 'Marital Status': 'Married' })
-        .end((err, res) => {
-          expect(res).to.have.status(200);
-          done();
-        });
-    });
-    it('should update household size for princess leia', done => {
-      chai
-        .request(app)
-        .put('/passenger/recaUmd14q3YOP3Uf')
-        .send({ 'Household Size': 3 })
-        .end((err, res) => {
-          expect(res).to.have.status(200);
-          done();
-        });
-    });
-    it('should return a 400 response', done => {
-      chai
-        .request(app)
-        .put('/passenger/recaUmd14q3YOP3Uf')
-        .send({ 'Household Size': 'test' })
-        .end((err, res) => {
-          expect(res).to.have.status(400);
-          done();
-        });
-    });
-    it('should update email for jefferson morales', done => {
-      chai
-        .request(app)
-        .put('/passenger/recLFdznCJOUPEx72')
-        .send({ Email: 'loser@weirdo.com' })
-        .end((err, res) => {
-          expect(res).to.have.status(200);
-          done();
-        });
-    });
+});
+describe('PUT passenger/:id', () => {
+  it('should return a 400 response', done => {
+    chai
+      .request(app)
+      .put('/passenger/junk')
+      .send({ id: '' })
+      .end((err, res) => {
+        expect(res).to.have.status(400);
+        done();
+      });
+  });
+  it('should return a 400 response', done => {
+    chai
+      .request(app)
+      .put('/passenger/junk')
+      .send({ passengerData: '' })
+      .end((err, res) => {
+        expect(res).to.have.status(400);
+        done();
+      });
+  });
+  it('should update street for anakin skywalker', done => {
+    chai
+      .request(app)
+      .put('/passenger/rec3Wv1VViXYv3t72')
+      .send({ Street: 'HELLOSTREET' })
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        done();
+      });
+  });
+  it('should update marital status for princess leia', done => {
+    chai
+      .request(app)
+      .put('/passenger/recaUmd14q3YOP3Uf')
+      .send({ 'Marital Status': 'Married' })
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        done();
+      });
+  });
+  it('should update household size for princess leia', done => {
+    chai
+      .request(app)
+      .put('/passenger/recaUmd14q3YOP3Uf')
+      .send({ 'Household Size': 3 })
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        done();
+      });
+  });
+  it('should return a 400 response', done => {
+    chai
+      .request(app)
+      .put('/passenger/recaUmd14q3YOP3Uf')
+      .send({ 'Household Size': 'test' })
+      .end((err, res) => {
+        expect(res).to.have.status(400);
+        done();
+      });
+  });
+  it('should update email for jefferson morales', done => {
+    chai
+      .request(app)
+      .put('/passenger/recLFdznCJOUPEx72')
+      .send({ Email: 'loser@weirdo.com' })
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        done();
+      });
   });
 });
