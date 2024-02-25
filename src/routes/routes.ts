@@ -34,7 +34,7 @@ const routes = (app: Express) => {
   /* Passenger Controller Routes */
   app.get('/passenger/', getAllPassengersForUser);
   app.get('/passenger/:id', getPassengerById);
-  app.post('/passenger/', createPassenger);
+  app.post('/passenger/:id', createPassenger);
   app.put('/passenger/:id', updatePassenger);
 
   /* Flight Request Controller Routes */
