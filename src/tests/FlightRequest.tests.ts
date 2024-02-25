@@ -40,13 +40,10 @@ describe('GET /requests/', () => {
         const firstRequest = requests[0];
         expect(firstRequest).to.have.property('id').that.is.a('string');
         expect(firstRequest)
-          .to.have.nested.property('fields.Patient Name')
-          .that.equals('Stormie  Gilchrist');
-        expect(firstRequest)
-          .to.have.nested.property('fields.Request ID')
+          .to.have.nested.property('Request ID')
           .that.is.a('string');
         expect(firstRequest)
-          .to.have.nested.property('fields.Request ID')
+          .to.have.nested.property('Request ID')
           .that.equals(
             '2022-12-08 | In Progress | Gilchrist, Stormie | 2014-06-21'
           );
@@ -54,7 +51,7 @@ describe('GET /requests/', () => {
         // Assuming flightLegs is an array and we're testing the first flight leg for simplicity
         const firstFlightLeg = firstRequest.flightLegs[0];
         expect(firstFlightLeg)
-          .to.have.nested.property('fields.Departure Date/Time')
+          .to.have.nested.property('Departure Date/Time')
           .that.equals('2023-02-06');
 
         done();

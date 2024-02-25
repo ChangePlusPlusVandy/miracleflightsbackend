@@ -1,8 +1,11 @@
 /* eslint-disable no-irregular-whitespace */
 import { createTestFlightLegData } from '../data/test-data';
+import { trimFlightLeg, trimRequest } from '../util/trim';
 import Airtable from 'airtable';
 import dotenv from 'dotenv';
+import type { FlightLegData } from '../interfaces/legs/flight-leg.interface';
 import type { Request, Response } from 'express';
+import type { FlightRequestData } from '../interfaces/requests/flight-request.interface';
 dotenv.config();
 
 const base = new Airtable({
@@ -47,9 +50,13 @@ export const getAllFlightRequestsForUser = async (
         .json({ error: 'No flight requests found for this user' });
     }
 
+    const trimmedFlightRequests = flightRequests.map(request =>
+      trimRequest(request as unknown as FlightRequestData)
+    );
+
     // Retrieve flight legs for each flight request and format the data
     const formattedFlightRequests = await Promise.all(
-      flightRequests.map(async request => {
+      trimmedFlightRequests.map(async request => {
         const flightLegs = await base('Flight Legs')
           .select({
             filterByFormula: `{Request AirTable Record ID} = "${request.id}"`,
@@ -58,13 +65,10 @@ export const getAllFlightRequestsForUser = async (
 
         // Format the flight request data and include the corresponding flight legs
         return {
-          id: request.id,
-          createdTime: request._rawJson.createdTime,
-          fields: request.fields,
-          flightLegs: flightLegs.map(leg => ({
-            id: leg.id,
-            fields: leg.fields,
-          })),
+          ...request,
+          flightLegs: flightLegs.map(leg =>
+            trimFlightLeg(leg as unknown as FlightLegData)
+          ),
         };
       })
     );
