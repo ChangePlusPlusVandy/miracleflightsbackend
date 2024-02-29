@@ -7,13 +7,12 @@ import type { Request, Response } from 'express';
 import Airtable from 'airtable';
 import dotenv from 'dotenv';
 import type { FieldSet, Record } from 'airtable';
+import Joi from 'joi';
 dotenv.config();
 
 const base = new Airtable({
   apiKey: process.env.AIRTABLE_API_KEY || '',
 }).base('appwPsfAb6U8CV3mf');
-
-const Joi = require('joi');
 
 /**
  * Get all of the related passengers for a user (people they have flown with in the past)
