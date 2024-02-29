@@ -163,8 +163,9 @@ export const createPassenger = async (req: Request, res: Response) => {
     console.log('Validation successful', value);
   }
 
+  //if validation is successful try to create the passenger
   try {
-    const createdPassenger = await base('Passengers').create(
+    await base('Passengers').create(
       [
         {
           fields: {
@@ -189,71 +190,50 @@ export const createPassenger = async (req: Request, res: Response) => {
           },
         },
       ],
-      function (err, records) {
+      async (err, records) => {
         if (err) {
           console.error(err);
           return res.status(500).json({ error: 'Error creating passenger' });
         }
-        // records.forEach(function (record) {
-        //   console.log(record.getId());
-        // });
+
+        //passenger was created successfully, we need to add them to the relatedPassenger of the user
+        try {
+          let relatedPassengers = [] as string[];
+
+          //find the current related passengers of the user id
+          base('Passengers').find(id, async (err, record) => {
+            if (err) {
+              console.error(err);
+              return;
+            }
+            console.log('Retrieved', record?.id);
+
+            relatedPassengers = record?.fields[
+              'Related Accompanying Passenger(s)'
+            ] as string[];
+
+            console.log(relatedPassengers);
+
+            //add the passenger we just created to the user's previous related passengers
+            const newRelatedPassengers = [
+              ...(relatedPassengers || []),
+              records?.[0].id,
+            ];
+            console.log(newRelatedPassengers);
+
+            // Update the user record with the new list of related passengers
+            await base('Passengers').update(id, {
+              'Related Accompanying Passenger(s)': newRelatedPassengers,
+            });
+
+            return res.status(200).send(trimPassenger(records?.[0]._rawJson));
+          });
+        } catch (err2: any) {
+          console.error(err2);
+          return res.status(500).json({ error: 'Error updating user' });
+        }
       }
     );
-
-    try {
-      // var previousRecords;
-      // const user = await base('Passengers').find(id, function(err, record) {
-      //     if (err) { console.error(err); return; }
-      //     console.log('Retrieved', record?.id);
-      //     previousRecords = record?.fields["Related Accompanying Passenger(s)"];
-      // });
-      //   const userRecord = await base('Passengers').find(id);
-      //   let previousRecords = userRecord.fields["Related Accompanying Passenger(s)"] || [];
-      //   previousRecords.push(createdPassenger.id); // Use the ID of the created passenger
-
-      // await base('Passengers').update([
-      //   { "id": id, "fields": { "Related Accompanying Passenger(s)": previousRecords }},
-      // ]);
-
-      //need to get the related accompanying passengers of the user
-
-      // await base('Passengers').update([
-      //   {
-      //     "id": id,
-      //     "fields": {
-      //       "Related Accompanying Passenger(s)": previousRecords.push(createdPassenger)
-      //     }
-      //   }
-
-      // ], function(err, records) {
-      //   if (err) {
-      //     console.error(err);
-      //     return;
-      //   }
-      // });
-
-      const userRecord = await base('Passengers').find(id);
-
-      let relatedPassengers =
-        userRecord.fields['Related Accompanying Passenger(s)'];
-      if (!relatedPassengers) {
-        relatedPassengers = [];
-      }
-
-      const passengerName = `${passengerData['First Name']} ${passengerData['Last Name']}`;
-      //relatedPassengers.push(passengerName);
-      relatedPassengers = relatedPassengers + passengerName;
-
-      // Update the user record with the new list of related passengers
-      await base('Passengers').update(id, {
-        'Related Accompanying Passenger(s)': relatedPassengers,
-      });
-    } catch (err2: any) {
-      console.error(err2);
-      return res.status(500).json({ error: 'Error updating user' });
-    }
-
-    return createdPassenger;
   } catch (err: any) {
     console.error(err);
     return res.status(500).json({ error: 'Error creating passenger' });
