@@ -156,12 +156,8 @@ export const createPassenger = async (req: Request, res: Response) => {
   const { error, value } = passengerSchema.validate(passengerData);
 
   if (error) {
-    console.log(error.details);
-    return res.status(400).send(error.details);
-  } else {
-    console.log('Validation successful', value);
+    return res.status(400).json(error.details);
   }
-
   //if validation is successful try to create the passenger
   try {
     await base('Passengers').create(
@@ -205,20 +201,16 @@ export const createPassenger = async (req: Request, res: Response) => {
               console.error(err);
               return;
             }
-            console.log('Retrieved', record?.id);
 
             relatedPassengers = record?.fields[
               'Related Accompanying Passenger(s)'
             ] as string[];
-
-            console.log(relatedPassengers);
 
             //add the passenger we just created to the user's previous related passengers
             const newRelatedPassengers = [
               ...(relatedPassengers || []),
               records?.[0].id,
             ];
-            console.log(newRelatedPassengers);
 
             // Update the user record with the new list of related passengers
             await base('Passengers').update(id, {
