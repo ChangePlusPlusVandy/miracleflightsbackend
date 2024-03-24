@@ -16,6 +16,7 @@ import { pathParameterExample } from '../controllers/TestControllers/pathParamet
 import { bodyParameterExample } from '../controllers/TestControllers/bodyParameterExample';
 import { retrievePassengers } from '../controllers/TestControllers/retrievePassengers';
 import { createUser } from '../controllers/User.controller';
+import { SubmitJotForm } from '../services/JotFormService';
 import type { Express, Request, Response } from 'express';
 
 const routes = (app: Express) => {
@@ -43,6 +44,9 @@ const routes = (app: Express) => {
   app.get('/requests/:id/legs', getFlightLegsById);
   app.post('/requests/', createFlightRequest);
   app.put('/requests/:id', updateFlightRequest);
+
+  // Jotform route
+  app.post('/submit-flight-request', SubmitJotForm);
 
   // 404
   app.use((_: Request, res: Response) => {
