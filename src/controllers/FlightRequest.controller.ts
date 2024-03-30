@@ -168,6 +168,9 @@ export const createFlightRequest = async (req: Request, res: Response) => {
   // get the flight request data from the request body
   // const data = req.body;
 
+  // if (!data) {
+  //   return res.status(400).json({ error: 'Flight request data missing' });
+  // }
   // use Joi to validate the request body
   // ...
 
