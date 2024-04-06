@@ -42,21 +42,25 @@ export const getAllPassengersForUser = async (req: Request, res: Response) => {
           return;
         } else {
           // get related passengers information
-          const accompPassengers = [] as Record<FieldSet>[];
-          const accompanyingPassengersPromise = record._rawJson.fields[
-            'Related Accompanying Passenger(s)'
-          ].map(async (id: string) => {
-            // map through the related passengers and get the passenger information for each one
-            const passenger = await base('Passengers').find(id.toString());
-            accompPassengers.push(passenger);
-          });
+          const accompPassengersPromise = [] as Promise<Record<FieldSet>>[];
+
+          record._rawJson.fields['Related Accompanying Passenger(s)']?.map(
+            async (id: string) => {
+              // map through the related passengers and get the passenger information for each one
+              const passenger = base('Passengers').find(id.toString());
+              accompPassengersPromise.push(passenger);
+            }
+          );
 
           // Remove any unnecessary data from the passengers
-          await Promise.all(accompanyingPassengersPromise);
-          const trimmedPassengers = accompPassengers.map(
-            (passenger: Record<FieldSet>) =>
+          const passengers = await Promise.all(accompPassengersPromise);
+
+          console.log('HEERE', passengers);
+
+          const trimmedPassengers =
+            passengers?.map((passenger: Record<FieldSet>) =>
               trimPassenger(passenger._rawJson as unknown as PassengerData)
-          );
+            ) || [];
 
           // return the passengers for the user
           return res.send(trimmedPassengers);
