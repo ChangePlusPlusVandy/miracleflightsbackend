@@ -13,6 +13,11 @@ export interface TrimmedPassenger {
   Email: string;
   'Household Income': number;
   'Household Size': number;
+  'Cell Phone': string;
+  'Home Phone': string;
+  Education: string;
+  'Marital Status': string;
+  Employment: string;
   Ethnicity: string[];
   'Military Service': string;
   'Military Member': string[];
@@ -24,6 +29,7 @@ export interface TrimmedPassenger {
   '# of Booked Flight Requests': number;
   'Birth Month': string;
   'Full Name': string;
+  'Passenger Names (from All Flight Legs)': string[];
   Age: number;
   'Latest Trip': string;
 }

@@ -42,21 +42,23 @@ export const getAllPassengersForUser = async (req: Request, res: Response) => {
           return;
         } else {
           // get related passengers information
-          const accompPassengers = [] as Record<FieldSet>[];
-          const accompanyingPassengersPromise = record._rawJson.fields[
-            'Related Accompanying Passenger(s)'
-          ].map(async (id: string) => {
-            // map through the related passengers and get the passenger information for each one
-            const passenger = await base('Passengers').find(id.toString());
-            accompPassengers.push(passenger);
-          });
+          const accompPassengersPromise = [] as Promise<Record<FieldSet>>[];
+
+          record._rawJson.fields['Related Accompanying Passenger(s)']?.map(
+            async (id: string) => {
+              // map through the related passengers and get the passenger information for each one
+              const passenger = base('Passengers').find(id.toString());
+              accompPassengersPromise.push(passenger);
+            }
+          );
 
           // Remove any unnecessary data from the passengers
-          await Promise.all(accompanyingPassengersPromise);
-          const trimmedPassengers = accompPassengers.map(
-            (passenger: Record<FieldSet>) =>
+          const passengers = await Promise.all(accompPassengersPromise);
+
+          const trimmedPassengers =
+            passengers?.map((passenger: Record<FieldSet>) =>
               trimPassenger(passenger._rawJson as unknown as PassengerData)
-          );
+            ) || [];
 
           // return the passengers for the user
           return res.send(trimmedPassengers);
@@ -65,7 +67,7 @@ export const getAllPassengersForUser = async (req: Request, res: Response) => {
     );
   } catch (err: any) {
     // if that fails return a 500
-    console.error(err);
+    logger.error(err);
     return res.status(500).json({ error: 'Error fetching record' });
   }
 };
@@ -84,7 +86,37 @@ export const getAllPassengersForUser = async (req: Request, res: Response) => {
  * @param res - the response object
  */
 export const getPassengerById = async (req: Request, res: Response) => {
-  // const { userId } = req.query;
+  const { id: userId } = req.params;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'Passenger ID missing' });
+  }
+
+  const base = new Airtable({
+    apiKey: process.env.AIRTABLE_API_KEY || '',
+  }).base('appwPsfAb6U8CV3mf');
+
+  try {
+    await base('Passengers').find(
+      userId.toString(),
+      async (err: any, record: any | undefined) => {
+        if (err) {
+          return res.status(400).send({ error: 'No passenger found' });
+        } else {
+          // remove any unnecessary data from the passenger
+          const trimmedPassenger = trimPassenger(
+            record._rawJson as unknown as PassengerData
+          );
+
+          // return the passenger
+          return res.send(trimmedPassenger);
+        }
+      }
+    );
+  } catch (err: any) {
+    logger.error(err);
+    return res.status(500).json({ error: 'Error fetching record' });
+  }
 };
 
 /**
@@ -244,18 +276,56 @@ export const createPassenger = async (req: Request, res: Response) => {
  * @param res - the response object
  */
 export const updatePassenger = async (req: Request, res: Response) => {
-  // get the passengerId from the query parameters
-  // const { passengerId } = req.query;
+  const { id } = req.params;
+  const passengerData = req.body;
 
-  // get the passenger data from the request body
-  // const data = req.body;
+  if (!id) {
+    return res.status(400).send({ error: 'User ID is required' });
+  }
+  if (!passengerData) {
+    return res.status(400).send({ error: 'Passenger data is required' });
+  }
 
-  // validate the passenger data using Joi
-  // ...
+  const schema = Joi.object({
+    Street: Joi.string().optional(),
+    City: Joi.string().optional(),
+    State: Joi.string().optional(),
+    Country: Joi.string().optional(),
+    Email: Joi.string().email().optional(),
+    'Cell Phone': Joi.string().optional(),
+    'Home Phone': Joi.string().optional(),
+    Education: Joi.string().optional(),
+    'Household Income': Joi.number().optional(),
+    'Household Size': Joi.number().optional(),
+    'Marital Status': Joi.string().optional(),
+    Employment: Joi.string().optional,
+    'Military Service': Joi.string().optional(),
+    'Military Member': Joi.array().optional(),
+  });
 
-  // create a fake passenger
-  const passenger = createTestPassengerData();
+  if (schema.validate(passengerData).error) {
+    return res.status(400).send({ error: 'Invalid passenger data' });
+  }
 
-  // return the updated passenger
-  res.status(200).send(passenger);
+  const base = new Airtable({
+    apiKey: process.env.AIRTABLE_API_KEY || '',
+  }).base('appwPsfAb6U8CV3mf');
+
+  try {
+    // make a call to AirTable to update the passenger
+    await base('Passengers').update(
+      [{ id, fields: passengerData }],
+      async (err, records) => {
+        if (err) {
+          logger.error(err);
+          return;
+        }
+        res.status(200).send(records);
+      }
+    );
+  } catch (err: any) {
+    // if that fails return a 500
+    logger.error(err);
+    return res.status(500).json({ error: 'Error updating' });
+  }
 };

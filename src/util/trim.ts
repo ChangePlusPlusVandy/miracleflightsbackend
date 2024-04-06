@@ -46,8 +46,15 @@ export const trimPassenger = (passenger: PassengerData): TrimmedPassenger => {
     '# of Booked Flight Requests': fields['# of Booked Flight Requests'],
     'Birth Month': fields['Birth Month'],
     'Full Name': fields['Full Name'],
+    'Passenger Names (from All Flight Legs)':
+      fields['Passenger Names (from All Flight Legs)'],
     Age: Age,
     'Latest Trip': fields['Latest Trip'],
+    'Cell Phone': fields['Cell Phone'],
+    'Home Phone': fields['Home Phone'],
+    Education: fields['Education'],
+    'Marital Status': fields['Marital Status'],
+    Employment: fields['Employment'],
   };
 
   return trimmedPassenger;

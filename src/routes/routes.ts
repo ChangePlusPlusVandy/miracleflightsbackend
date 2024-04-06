@@ -32,7 +32,7 @@ const routes = (app: Express) => {
   app.get('/test/retrievePassengers', retrievePassengers);
 
   /* Passenger Controller Routes */
-  app.get('/passenger/', getAllPassengersForUser);
+  app.get('/passenger/accompanying', getAllPassengersForUser);
   app.get('/passenger/:id', getPassengerById);
   app.post('/passenger/:id', createPassenger);
   app.put('/passenger/:id', updatePassenger);
