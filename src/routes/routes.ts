@@ -11,10 +11,6 @@ import {
   updateFlightRequest,
   getFlightLegsById,
 } from '../controllers/FlightRequest.controller';
-import { queryParameterExample } from '../controllers/TestControllers/queryParameterExample';
-import { pathParameterExample } from '../controllers/TestControllers/pathParameterExample';
-import { bodyParameterExample } from '../controllers/TestControllers/bodyParameterExample';
-import { retrievePassengers } from '../controllers/TestControllers/retrievePassengers';
 import { createUser } from '../controllers/User.controller';
 import type { Express, Request, Response } from 'express';
 
@@ -24,12 +20,6 @@ const routes = (app: Express) => {
 
   /* User Controller */
   app.post('/user/', createUser);
-
-  /* Test Controller */
-  app.get('/test/query', queryParameterExample);
-  app.get('/test/path/:value', pathParameterExample);
-  app.get('/test/body', bodyParameterExample);
-  app.get('/test/retrievePassengers', retrievePassengers);
 
   /* Passenger Controller Routes */
   app.get('/passenger/accompanying', getAllPassengersForUser);
