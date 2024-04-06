@@ -42,21 +42,23 @@ export const getAllPassengersForUser = async (req: Request, res: Response) => {
           return;
         } else {
           // get related passengers information
-          const accompPassengers = [] as Record<FieldSet>[];
-          const accompanyingPassengersPromise = record._rawJson.fields[
-            'Related Accompanying Passenger(s)'
-          ].map(async (id: string) => {
-            // map through the related passengers and get the passenger information for each one
-            const passenger = await base('Passengers').find(id.toString());
-            accompPassengers.push(passenger);
-          });
+          const accompPassengersPromise = [] as Promise<Record<FieldSet>>[];
+
+          record._rawJson.fields['Related Accompanying Passenger(s)']?.map(
+            async (id: string) => {
+              // map through the related passengers and get the passenger information for each one
+              const passenger = base('Passengers').find(id.toString());
+              accompPassengersPromise.push(passenger);
+            }
+          );
 
           // Remove any unnecessary data from the passengers
-          await Promise.all(accompanyingPassengersPromise);
-          const trimmedPassengers = accompPassengers.map(
-            (passenger: Record<FieldSet>) =>
+          const passengers = await Promise.all(accompPassengersPromise);
+
+          const trimmedPassengers =
+            passengers?.map((passenger: Record<FieldSet>) =>
               trimPassenger(passenger._rawJson as unknown as PassengerData)
-          );
+            ) || [];
 
           // return the passengers for the user
           return res.send(trimmedPassengers);
@@ -125,46 +127,139 @@ export const getPassengerById = async (req: Request, res: Response) => {
  * 2. Get the passenger data from the request body, if it doesn't exist return a 400
  * 3. Make a call to AirTable to create the passenger, if that fails return a 500 (hint, use try/catch)
  * 4. Return the created passenger
+ * 5. add the passenger to the accompanying passengers of the user (req.params) sending the request
  *
  * @param req - the request object
  * @param res - the response object
  */
+
 export const createPassenger = async (req: Request, res: Response) => {
-  const userId = req.query.userId;
+  //gets userId and passengerData from parameters
+  const { id } = req.params;
   const passengerData = req.body;
 
-  if (!userId) {
-    return res.status(400).send({ error: 'User ID is required' });
+  if (!id) {
+    return res.status(400).send('AirTable Record ID is required');
   }
+
   if (!passengerData) {
-    return res.status(400).send({ error: 'Passenger data is required' });
+    return res.status(400).send('Passenger data is required.');
   }
-  const newRecord = {
-    fields: {
-      'First Name': passengerData.firstName,
-      'Middle Name': passengerData.middleName || '',
-      'Last Name': passengerData.lastName,
-      Email: passengerData.email,
-      Type: passengerData.type,
-      '# of Booked Flight Requests': passengerData.numBookedFlightRequests,
-      'Multi-patient family?': passengerData.multiPatientFamily,
-      Relationship: passengerData.relationship,
-      Birthday: passengerData.birthday,
-      'Day Before Birthday': passengerData.dayBeforeBirthday,
-      'Day After Birthday': passengerData.dayAfterBirthday,
-
-      UserId: userId,
-    },
-    typecast: true,
-  };
-
   try {
-    // const createdRecords = await base('Passengers').create([newRecord]);
-    // const createdPassenger = createdRecords[0];
-    // res.status(200).send({ createdPassenger });
-  } catch (error) {
-    logger.info(error);
-    res.status(500).send({ error: 'Failed to create passenger' });
+    const passenger = await base('Passengers').find(id);
+  } catch (err: any) {
+    return res.status(400).send('User does not exist');
+  }
+
+  //joi stuff to validate whether the passengerData is of the right format
+
+  const passengerSchema = Joi.object({
+    fields: Joi.object({
+      Relationship: Joi.string()
+        .valid(
+          'Mother',
+          'Father',
+          'Step-mother',
+          'Step-father',
+          'Legal Guardian',
+          'Spouse',
+          'Family Member',
+          'Other Caregiver'
+        )
+        .required(),
+      'First Name': Joi.string().required(),
+      'Last Name': Joi.string().required(),
+      'Date of Birth': Joi.date().required(),
+      Diagnoses: Joi.array().items(Joi.string()),
+      Gender: Joi.string().valid('Male', 'Female', 'Other').required(),
+      Street: Joi.string().required(),
+      City: Joi.string().required(),
+      State: Joi.string().required(),
+      Zip: Joi.string().required(),
+      Country: Joi.string().required(),
+      'Cell Phone': Joi.string()
+        .regex(/^\(\d{3}\) \d{3}-\d{4}$/)
+        .required(),
+      Email: Joi.string().email().required(),
+      Waiver: Joi.boolean().required(),
+    }).required(),
+  });
+
+  const { error, value } = passengerSchema.validate(passengerData);
+
+  if (error) {
+    return res.status(400).json(error.details);
+  }
+  //if validation is successful try to create the passenger
+  try {
+    await base('Passengers').create(
+      [
+        {
+          fields: {
+            Type: 'Accompanying Passenger',
+            Relationship: passengerData.fields.Relationship,
+            'First Name': passengerData.fields['First Name'],
+            'Last Name': passengerData.fields['Last Name'],
+            'Date of Birth': passengerData.fields['Date of Birth'],
+            Diagnoses: passengerData.fields.Diagnoses || [],
+            Gender: passengerData.fields.Gender,
+            Street: passengerData.fields.Street,
+            City: passengerData.fields.City,
+            State: passengerData.fields.State,
+            Zip: passengerData.fields.Zip,
+            Country: passengerData.fields.Country,
+            'Cell Phone': passengerData.fields['Cell Phone'],
+            Email: passengerData.fields.Email,
+            Waiver: passengerData.fields.Waiver,
+            'All Flight Requests (Pass 2)': [],
+            'All Flight Legs': [],
+            'Related Patient(s)': [],
+          },
+        },
+      ],
+      async (err, records) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ error: 'Error creating passenger' });
+        }
+
+        //passenger was created successfully, we need to add them to the relatedPassenger of the user
+        try {
+          let relatedPassengers = [] as string[];
+
+          //find the current related passengers of the user id
+          base('Passengers').find(id, async (err, record) => {
+            if (err) {
+              console.error(err);
+              return;
+            }
+
+            relatedPassengers = record?.fields[
+              'Related Accompanying Passenger(s)'
+            ] as string[];
+
+            //add the passenger we just created to the user's previous related passengers
+            const newRelatedPassengers = [
+              ...(relatedPassengers || []),
+              records?.[0].id,
+            ];
+
+            // Update the user record with the new list of related passengers
+            await base('Passengers').update(id, {
+              'Related Accompanying Passenger(s)': newRelatedPassengers,
+            });
+
+            return res.status(200).send(trimPassenger(records?.[0]._rawJson));
+          });
+        } catch (err2: any) {
+          console.error(err2);
+          return res.status(500).json({ error: 'Error updating user' });
+        }
+      }
+    );
+  } catch (err: any) {
+    console.error(err);
+    return res.status(500).json({ error: 'Error creating passenger' });
   }
 };
 
