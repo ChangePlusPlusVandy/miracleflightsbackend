@@ -1,8 +1,9 @@
-import routes from '../routes/routes';
+import router from '../routes/routes';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import type { Request, Response } from 'express';
 
 export const configureServer = () => {
   const app = express();
@@ -21,7 +22,12 @@ export const configureServer = () => {
   }
 
   // Routes
-  routes(app);
+  app.use(router);
+
+  // 404 - No route found
+  router.use((_: Request, res: Response) => {
+    res.status(404).send('404: Page not found');
+  });
 
   // Create the server
   return app;

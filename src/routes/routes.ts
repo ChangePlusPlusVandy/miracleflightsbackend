@@ -11,35 +11,43 @@ import {
   updateFlightRequest,
   getFlightLegsById,
 } from '../controllers/FlightRequest.controller';
-import { createUser } from '../controllers/User.controller';
-import type { Express, Request, Response } from 'express';
+import {
+  createUser,
+  linkUserToAirtableRecord,
+} from '../controllers/User.controller';
+import validateAuth from '../middleware/validateAuth';
+import express from 'express';
+import type { LooseAuthProp } from '@clerk/clerk-sdk-node';
+import type { Request, Response } from 'express';
 
-const routes = (app: Express) => {
-  // healthcheck
-  app.get('/healthcheck', (_: Request, res: Response) => res.sendStatus(200));
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    interface Request extends LooseAuthProp {}
+  }
+}
 
-  /* User Controller */
-  app.post('/user/', createUser);
+// Protected routes (require authentication)
+const router = express.Router();
 
-  /* Passenger Controller Routes */
-  app.get('/passenger/accompanying', getAllPassengersForUser);
-  app.get('/passenger/:id', getPassengerById);
-  app.post('/passenger/:id', createPassenger);
-  app.put('/passenger/:id', updatePassenger);
+// healthcheck
+router.get('/healthcheck', (_: Request, res: Response) => res.sendStatus(200));
 
-  /* Flight Request Controller Routes */
-  app.get('/requests/', getAllFlightRequestsForUser);
-  app.get('/requests/:id', getFlightRequestById);
-  app.get('/requests/:id/legs', getFlightLegsById);
-  app.post('/requests/', createFlightRequest);
-  app.put('/requests/:id', updateFlightRequest);
+/* User Controller */
+router.post('/user/', validateAuth, createUser);
+router.post('/user/link', validateAuth, linkUserToAirtableRecord);
 
-  // 404
-  app.use((_: Request, res: Response) => {
-    res.status(404).send('404: Page not found');
-  });
+/* Passenger Controller Routes */
+router.get('/passenger/accompanying', validateAuth, getAllPassengersForUser);
+router.get('/passenger/:id', validateAuth, getPassengerById);
+router.post('/passenger/:id', validateAuth, createPassenger);
+router.put('/passenger/:id', validateAuth, updatePassenger);
 
-  return app;
-};
+/* Flight Request Controller Routes */
+router.get('/requests/', validateAuth, getAllFlightRequestsForUser);
+router.get('/requests/:id', validateAuth, getFlightRequestById);
+router.get('/requests/:id/legs', validateAuth, getFlightLegsById);
+router.post('/requests/', validateAuth, createFlightRequest);
+router.put('/requests/:id', validateAuth, updateFlightRequest);
 
-export default routes;
+export default router;
