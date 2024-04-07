@@ -1,5 +1,6 @@
 import express from 'express';
 import Jotform from 'jotform';
+
 const app = express();
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require('dotenv').config();
@@ -16,26 +17,14 @@ const client = new Jotform(process.env.JOTFORM_API_KEY || '', {
 
 const validateFormData = data => {
   // List of required fields for simplification
-  const requiredFields = [
-    // 'childPatientVerification',
-    // 'canTravelCommercially',
-    // 'hasRequiredDocumentation',
-    // 'livesInUS',
-    // 'departureDateIn14Days',
-    // 'governmentAssistance',
-    // 'hasIRS1040',
-    // 'householdSize',
-    // 'grossHouseholdIncome',
-    // 'firstName',
-    // 'lastName',
-    // 'dateOfBirth',
-    // 'gender',
-    // 'streetAddress',
-    // 'city',
-    // 'state',
-    // 'postalCode',
-    'email',
-  ];
+  // assume everything is valid
+  // set it up as one chunk
+  // submit and send back a 200 that it was submitted.
+  // pray it works.
+  // the flight request does not go to the sandbox, it goes to the live form.
+
+  // the form ID
+  const requiredFields = ['email'];
 
   // Check if each required field is present and not empty in the data
   for (const field of requiredFields) {
@@ -47,23 +36,26 @@ const validateFormData = data => {
   return { isValid: true };
 };
 
-app.post('/submit-flight-request', async (req, res) => {
+export const SubmitJotForm = async (req, res) => {
   const formData = req.body;
-
+  console.log('req.body', req.body);
+  console.log('formData', formData);
   // Validate formData
+
   const validation = validateFormData(formData);
   if (!validation.isValid) {
+    console.log(req.body);
     return res.status(400).json({
       error: `Missing or empty required field: ${validation.missingField}`,
     });
   }
 
-  // next step: check if need to transform formData into the format
-  //  expected by JotForm if necessary
+  // // next step: check if need to transform formData into the format
+  // // expected by JotForm if necessary
 
   try {
-    // form ID: 232016153645146
-    const response = await client.form.addSubmission('232016153645146', {
+    // form ID: 240586898219170 - clone one of the forms from the JotForm account
+    const response = await client.form.addSubmission('240586898219170', {
       submission: { data: formData },
     });
 
@@ -79,7 +71,4 @@ app.post('/submit-flight-request', async (req, res) => {
     console.error('Error submitting to JotForm:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+};

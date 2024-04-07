@@ -16,6 +16,7 @@ import {
   linkUserToAirtableRecord,
 } from '../controllers/User.controller';
 import validateAuth from '../middleware/validateAuth';
+import { SubmitJotForm } from '../services/JotFormService';
 import express from 'express';
 import type { LooseAuthProp } from '@clerk/clerk-sdk-node';
 import type { Request, Response } from 'express';
@@ -49,5 +50,7 @@ router.get('/requests/:id', validateAuth, getFlightRequestById);
 router.get('/requests/:id/legs', validateAuth, getFlightLegsById);
 router.post('/requests/', validateAuth, createFlightRequest);
 router.put('/requests/:id', validateAuth, updateFlightRequest);
+
+router.post('/submit-flight-request', validateAuth, SubmitJotForm);
 
 export default router;
