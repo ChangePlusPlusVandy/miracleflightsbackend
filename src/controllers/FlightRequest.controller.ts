@@ -1,10 +1,17 @@
 /* eslint-disable no-irregular-whitespace */
 import { createTestFlightLegData } from '../data/test-data';
 import logger from '../util/logger';
+import { trimFlightLeg, trimRequest } from '../util/trim';
 import Airtable from 'airtable';
 import dotenv from 'dotenv';
+import type { FlightLegData } from '../interfaces/legs/flight-leg.interface';
 import type { Request, Response } from 'express';
+import type { FlightRequestData } from '../interfaces/requests/flight-request.interface';
 dotenv.config();
+
+const base = new Airtable({
+  apiKey: process.env.AIRTABLE_API_KEY || '',
+}).base('appwPsfAb6U8CV3mf');
 
 /**
  * This function returns all flight requests for a given user
@@ -24,18 +31,54 @@ export const getAllFlightRequestsForUser = async (
   req: Request,
   res: Response
 ) => {
-  // get the userId from the query parameters
   const { userId } = req.query;
 
-  if (userId === null) {
+  if (!userId) {
     return res.status(400).json({ error: 'Passenger ID missing' });
-  } // create a fake array of flight requests
+  }
 
-  const flightRequests = Array.from({ length: 10 }, () =>
-    createTestFlightLegData()
-  ); // return the flight requests for the user
+  try {
+    // query Airtable for flight requests for the user ID
+    const flightRequests = await base('Flight Requests (Trips)')
+      .select({
+        filterByFormula: `{Patient AirTable Record ID} = "${userId}"`,
+      })
+      .all();
 
-  res.status(200).send(flightRequests);
+    if (flightRequests.length === 0) {
+      return res
+        .status(400)
+        .json({ error: 'No flight requests found for this user' });
+    }
+
+    const trimmedFlightRequests = flightRequests.map(request =>
+      trimRequest(request as unknown as FlightRequestData)
+    );
+
+    // Retrieve flight legs for each flight request and format the data
+    const formattedFlightRequests = await Promise.all(
+      trimmedFlightRequests.map(async request => {
+        const flightLegs = await base('Flight Legs')
+          .select({
+            filterByFormula: `{Request AirTable Record ID} = "${request.id}"`,
+          })
+          .all();
+
+        // Format the flight request data and include the corresponding flight legs
+        return {
+          ...request,
+          flightLegs: flightLegs.map(leg =>
+            trimFlightLeg(leg as unknown as FlightLegData)
+          ),
+        };
+      })
+    );
+
+    return res.status(200).json(formattedFlightRequests);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Error fetching flight requests' });
+  }
 };
 
 /**

@@ -5,55 +5,53 @@ import {
   updatePassenger,
 } from '../controllers/Passenger.controller';
 import {
+  createUser,
+  linkUserToAirtableRecord,
+} from '../controllers/User.controller';
+import { getDashboardStats } from '../controllers/Dashboard.controller';
+import validateAuth from '../middleware/validateAuth';
+import {
   getAllFlightRequestsForUser,
   getFlightRequestById,
+  getFlightLegsById,
   createFlightRequest,
   updateFlightRequest,
-  getFlightLegsById,
 } from '../controllers/FlightRequest.controller';
-import { queryParameterExample } from '../controllers/TestControllers/queryParameterExample';
-import { pathParameterExample } from '../controllers/TestControllers/pathParameterExample';
-import { bodyParameterExample } from '../controllers/TestControllers/bodyParameterExample';
-import { retrievePassengers } from '../controllers/TestControllers/retrievePassengers';
-import { createUser } from '../controllers/User.controller';
-import { getDashboardStats } from '../controllers/Dashboard.controller';
-import type { Express, Request, Response } from 'express';
+import express from 'express';
+import type { Request, Response } from 'express';
+import type { LooseAuthProp } from '@clerk/clerk-sdk-node';
 
-const routes = (app: Express) => {
-  // healthcheck
-  app.get('/healthcheck', (_: Request, res: Response) => res.sendStatus(200));
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    interface Request extends LooseAuthProp {}
+  }
+}
 
-  /* User Controller */
-  app.post('/user/', createUser);
+// Protected routes (require authentication)
+const router = express.Router();
 
-  /* Test Controller */
-  app.get('/test/query', queryParameterExample);
-  app.get('/test/path/:value', pathParameterExample);
-  app.get('/test/body', bodyParameterExample);
-  app.get('/test/retrievePassengers', retrievePassengers);
+// healthcheck
+router.get('/healthcheck', (_: Request, res: Response) => res.sendStatus(200));
 
-  /* Passenger Controller Routes */
-  app.get('/passenger/', getAllPassengersForUser);
-  app.get('/passenger/:id', getPassengerById);
-  app.post('/passenger/', createPassenger);
-  app.put('/passenger/:id', updatePassenger);
+/* User Controller */
+router.post('/user/', validateAuth, createUser);
+router.post('/user/link', validateAuth, linkUserToAirtableRecord);
 
-  /* Flight Request Controller Routes */
-  app.get('/requests/', getAllFlightRequestsForUser);
-  app.get('/requests/:id', getFlightRequestById);
-  app.get('/requests/:id/legs', getFlightLegsById);
-  app.post('/requests/', createFlightRequest);
-  app.put('/requests/:id', updateFlightRequest);
+/* Passenger Controller Routes */
+router.get('/passenger/accompanying', validateAuth, getAllPassengersForUser);
+router.get('/passenger/:id', validateAuth, getPassengerById);
+router.post('/passenger/:id', validateAuth, createPassenger);
+router.put('/passenger/:id', validateAuth, updatePassenger);
 
-  /* Dashboard Controller Routes */
-  app.get('/dashboard/', getDashboardStats);
+/* Dashboard Controller Routes */
+router.get('/dashboard/', getDashboardStats);
 
-  // 404
-  app.use((_: Request, res: Response) => {
-    res.status(404).send('404: Page not found');
-  });
+/* Flight Request Controller Routes */
+router.get('/requests/', validateAuth, getAllFlightRequestsForUser);
+router.get('/requests/:id', validateAuth, getFlightRequestById);
+router.get('/requests/:id/legs', validateAuth, getFlightLegsById);
+router.post('/requests/', validateAuth, createFlightRequest);
+router.put('/requests/:id', validateAuth, updateFlightRequest);
 
-  return app;
-};
-
-export default routes;
+export default router;

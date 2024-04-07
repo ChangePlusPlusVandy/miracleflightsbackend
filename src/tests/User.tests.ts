@@ -27,7 +27,7 @@ after(done => {
 });
 
 // Test case
-describe('POST test/bodyParameterExample', () => {
+describe('POST test/user', () => {
   it('should return a 200 response if a user exists', done => {
     chai
       .request(app)
@@ -35,7 +35,7 @@ describe('POST test/bodyParameterExample', () => {
       .send({
         firstName: 'Boba',
         lastName: 'Fett',
-        birthdate: '2000-12-11T19:33:38+0000',
+        birthdate: '12-11-2000',
       })
       .end((err, res) => {
         expect(res).to.have.status(200);
@@ -50,7 +50,7 @@ describe('POST test/bodyParameterExample', () => {
       .send({
         firstName: 'Test',
         lastName: 'Person',
-        birthdate: '2000-12-11T19:33:38+0000',
+        birthdate: '12-11-2000',
       })
       .end((err, res) => {
         expect(res).to.have.status(400);
