@@ -17,7 +17,7 @@ export const restructureFlightRequest = (
     Street: patientStreetAddress,
     City: patientCity,
     Email: patientEmail,
-    'Household Income': annualFamilyIncome,
+    'Household Income': householdIncome,
     'Household Size': householdSize,
     'Cell Phone': patientCellPhone,
     'Home Phone': patientHomePhone,
@@ -28,7 +28,7 @@ export const restructureFlightRequest = (
     'Military Service': patientMilitaryService,
     'Military Member': patientMilitaryMember,
     'How did you hear about us': howDidYouHearAboutUs,
-    Diagnosis: patientDiagnosis,
+    Diagnoses: patientDiagnosis,
     Age: patientAgeAtAppointment,
   } = patient;
 
@@ -77,7 +77,7 @@ export const restructureFlightRequest = (
     [questionIdMap.patientStreetAddress]: patientStreetAddress,
     [questionIdMap.patientCity]: patientCity,
     [questionIdMap.patientEmail]: patientEmail,
-    [questionIdMap.annualFamilyIncome]: annualFamilyIncome.toString(),
+    [questionIdMap.annualFamilyIncome]: householdIncome.toString(),
     [questionIdMap.householdSize]: householdSize.toString(),
     [questionIdMap.patientCellPhone]: patientCellPhone,
     [questionIdMap.patientHomePhone]: patientHomePhone,
@@ -85,8 +85,12 @@ export const restructureFlightRequest = (
     [questionIdMap.patientMaritalStatus]: maritalStatus,
     [questionIdMap.patientEmploymentStatus]: patientEmploymentStatus,
     [questionIdMap.patientEthnicity]: patientEthnicity.toString(),
-    [questionIdMap.patientMilitaryService]: patientMilitaryService,
-    [questionIdMap.patientMilitaryMember]: patientMilitaryMember.toString(),
+    [questionIdMap.patientMilitaryService]: patientMilitaryService
+      ? patientMilitaryService
+      : '',
+    [questionIdMap.patientMilitaryMember]: patientMilitaryMember
+      ? patientMilitaryMember.toString()
+      : '',
     [questionIdMap.howDidYouHearAboutUs]: howDidYouHearAboutUs.toString(),
     [questionIdMap.patientDiagnosis]: patientDiagnosis.toString(),
     [questionIdMap.patientAgeAtAppointment]: patientAgeAtAppointment.toString(),

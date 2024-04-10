@@ -32,7 +32,7 @@ export const questionMap = {
   County: 519,
   Country: 207,
   Email: 24,
-  Diagnosis: 287,
+  Diagnoses: 287,
   'Type of Treatment': 288,
   'Does the child patient presently have medical insurance coverage?': 554,
   'Medical Insurance Company Name': 555,

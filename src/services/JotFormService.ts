@@ -63,7 +63,6 @@ export const SubmitJotForm = async (req, res) => {
     flightRequestData: flightRequestData,
   };
 
-  console.log('HERE IS THE RAWDATA rawData:', rawData);
   const submissionData = JSON.stringify(restructureFlightRequest(rawData));
 
   try {

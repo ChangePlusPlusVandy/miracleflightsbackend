@@ -47,7 +47,7 @@ export interface FlightLegData {
     City: string[];
     'State (from Passengers) 3': string[];
     'Zip (from Passengers)': string[];
-    'Diagnosis (from Passengers)': string[];
+    'Diagnoses (from Passengers)': string[];
     'Date of Birth (from Passengers) 2': string[];
     'TS City, State (from Treatment Site Totals 2) (from Passengers)': string[];
     '48 Hours After Flight': string;

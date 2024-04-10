@@ -12,7 +12,7 @@ export const trimPassenger = (passenger: PassengerData): TrimmedPassenger => {
     Country,
     Email,
     Ethnicity,
-    Diagnosis,
+    Diagnoses,
     Age,
   } = fields;
 
@@ -35,7 +35,7 @@ export const trimPassenger = (passenger: PassengerData): TrimmedPassenger => {
     'Military Member': fields['Military Member'],
     'How did you hear about us': fields['How did you hear about us'],
     'All Flight Legs': fields['All Flight Legs'],
-    Diagnosis: Diagnosis,
+    Diagnoses: Diagnoses,
     'AirTable Record ID': fields['AirTable Record ID'],
     '# of Flight Legs': fields['# of Flight Legs'],
     '# of Booked Flight Requests': fields['# of Booked Flight Requests'],

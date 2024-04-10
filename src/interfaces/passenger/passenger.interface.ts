@@ -14,8 +14,8 @@ export interface PassengerData {
     'Cell Phone': string;
     'Home Phone': string;
     Education: string;
-    'Household Income': number;
-    'Household Size': number;
+    'Household Income': string;
+    'Household Size': string;
     'Marital Status': string;
     Employment: string;
     Ethnicity: string[];
@@ -24,7 +24,7 @@ export interface PassengerData {
     'How did you hear about us': string[];
     'BL - Account Number': string;
     'All Flight Legs': string[];
-    Diagnosis: string[];
+    Diagnoses: string[];
     'Treatment Site Totals 2': string[];
     'Passenger ID': string;
     'AirTable Record ID': string;
@@ -42,7 +42,7 @@ export interface PassengerData {
     'Full Name': string;
     'Passenger Names (from All Flight Legs)': string[];
     '# of Accompanying Passengers': number;
-    Age: number;
+    Age: string;
     Birthday: string;
     'Day Before Birthday': string;
     'BL - Site 1 (from All Flight Legs)': string[];

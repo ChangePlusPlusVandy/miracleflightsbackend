@@ -9,7 +9,7 @@ export interface FlightRequestData {
     'Household Size': number;
     'Passenger 2 Approval Status': string;
     'How did you hear about us?': string;
-    Diagnosis: string;
+    Diagnoses: string;
     'Passenger 3': string[];
     'Patient Type': string;
     Ethnicity: string[];
