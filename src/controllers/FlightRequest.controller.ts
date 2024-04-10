@@ -56,23 +56,33 @@ export const getAllFlightRequestsForUser = async (
     );
 
     // Retrieve flight legs for each flight request and format the data
-    const formattedFlightRequests = await Promise.all(
-      trimmedFlightRequests.map(async request => {
-        const flightLegs = await base('Flight Legs')
-          .select({
-            filterByFormula: `{Request AirTable Record ID} = "${request.id}"`,
-          })
-          .all();
 
-        // Format the flight request data and include the corresponding flight legs
-        return {
-          ...request,
-          flightLegs: flightLegs.map(leg =>
-            trimFlightLeg(leg as unknown as FlightLegData)
-          ),
-        };
-      })
-    );
+    const promises = trimmedFlightRequests.map(async request => {
+       return (request['Flight Legs'].map(
+          async flightLegId =>
+            await base('Flight Legs')
+              .select({
+                filterByFormula: `{AirTable Record ID} = "${flightLegId}"`,
+              })
+              .all()
+       ))
+            }
+      );
+
+      const flightLegs = flightLegsDetails.map(
+        request => (request as any)._rawJson
+      );
+
+      console.log(flightLegs);
+
+      // Format the flight request data and include the corresponding flight legs
+      return {
+        ...request,
+        flightLegs: flightLegsDetails.map(leg =>
+          trimFlightLeg(leg as unknown as FlightLegData)
+        ),
+      };
+    });
 
     return res.status(200).json(formattedFlightRequests);
   } catch (error) {
