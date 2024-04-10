@@ -1,4 +1,4 @@
-export interface FlightRequestSubmissions {
+export interface FlightRequestSubmission {
   childPatient: {
     ageAtAppointment: number;
     isFirstTimeUser: boolean;
