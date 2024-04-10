@@ -17,9 +17,12 @@ export const questionMap = {
   'Alternate Airport of Origin (Flying From)': 404,
   'Destination Airport (Flying To)': 405,
   'Alternate Destination Airport (Flying To)': 406,
+
+  // Patient
   'First Name': 192,
   'Middle Name': 193,
   'Last Name': 311,
+  'Date of Birth': 14,
   'Age of patient at time of departing flight?': 522,
   Gender: 136,
   'Street Address': 198,
@@ -37,6 +40,8 @@ export const questionMap = {
   'Group #': 557,
   'Full Name of Treatment Site': 472,
   'Full Name of Primary Treatment Site Doctor': 477,
+  TreatmentSiteCityandState: '473',
+  TreatmentSitePhoneNumber: '474',
   'Oxygen Required': 162,
   'Will you be flying with a service dog?': 535,
   'Wheelchair Required': 163,
@@ -52,7 +57,10 @@ export const questionMap = {
   'Waive Right to Pursue Legal Action': 415,
   'Consent for Medical Treatment': 547,
   'Photo/Video Release': 416,
+  'Patient Signer Name': 289,
   'Relationship to Patient': 419,
+
+  // Passenger 2
   'Passenger 2 - First Name': 264,
   'Passenger 2 - Middle Name': 265,
   'Passenger 2 - Last Name': 312,
@@ -65,12 +73,16 @@ export const questionMap = {
   'Passenger 2 - State': 480,
   'Passenger 2 - Postal Code': 301,
   'Passenger 2 - Country': 302,
+  'Passenger 2 - Date of Birth': 452,
   'Passenger 2 Waiver of Responsibility': 343,
   'Passenger Name (as it appears on government issued identification)': 257,
-  // "Waive Right to Pursue Legal Action": 258,
-  // "Photo/Video Release": 260,
+  'Passenger 2 Waive Right to Pursue Legal Action': 258,
+  'Passenger 2 Photo/Video Release': 260,
+  'Passenger 2 Signer Name': 355,
   'Relationship to Passenger 2': 290,
   'Will patient require a third passenger?': 407,
+
+  // Passenger 3
   'Passenger 3 - First Name': 266,
   'Passenger 3 - Middle Name': 267,
   'Passenger 3 - Last Name': 313,
@@ -86,10 +98,14 @@ export const questionMap = {
   'Passenger 3 - Postal Code': 293,
   'Passenger 3 - Country': 218,
   'Passenger 3 Waiver of Responsibility': 367,
-  // "Passenger Name (as it appears on government issued identification)": 350,
-  // "Waive Right to Pursue Legal Action": 352,
-  // "Photo/Video Release": 353,
+  'Passenger 3 Name (as it appears on government issued identification)': 350,
+  'Passenger 3 Waive Right to Pursue Legal Action': 352,
+  'Passenger 3 Photo/Video Release': 353,
+  'Passenger 3 Signer Name': 418,
   'Relationship to Passenger 3': 356,
+  'Passenger 3 - Date of Birth': 453,
+
+  // General
   'Number of People in Household': 176,
   'Annual Family/Household Income': 175,
   'Please describe all sources of income for the household.': 178,
@@ -97,21 +113,22 @@ export const questionMap = {
   'Eligibility is determined by total family income and size.': 190,
   'Cancelling or Amending Flights': 191,
   'No Call No Show Acknowledgment': 285,
-  // "Consent for Medical Treatment": 561,
+  'Final Consent for Medical Treatment': 561,
   'Signer Email': 219,
-  // "Relationship to Patient": 154
+  'Name of Signer': 153,
+  'Final Relationship to Patient': 154,
 };
 
 export const newFlightRequestQuestions = {
   'Is your requested departure flight date at least 14 days away?': 450,
   'What Type of Travel Is This?': 523,
-  'Scheduled Medical Appointment Date': 10000000, // Find the ID for this one
-  'Departure Date?': 10000000, // Find the ID for this one
+  'Scheduled Medical Appointment Date': 159, // Find the ID for this one, needs to be in iso string format (use .toISOString() )
+  'Departure Date?': 513, // Find the ID for this one
   'Airport of Origin (Flying From)': 403,
   'Alternate Airport of Origin (Flying From)': 404,
   'Destination Airport (Flying To)': 405,
   'Alternate Destination Airport (Flying To)': 406,
-  'Return Date?': 10000000, // Find the ID for this one
+  'Return Date?': 160, // Find the ID for this one
   'Full Name of Treatment Site': 472,
   'Full Name of Primary Treatment Site Doctor': 477,
 };
