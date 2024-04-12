@@ -5,11 +5,17 @@ import {
   updatePassenger,
 } from '../controllers/Passenger.controller';
 import {
+  createUser,
+  linkUserToAirtableRecord,
+} from '../controllers/User.controller';
+import { getDashboardStats } from '../controllers/Dashboard.controller';
+import validateAuth from '../middleware/validateAuth';
+import {
   getAllFlightRequestsForUser,
   getFlightRequestById,
+  getFlightLegsById,
   createFlightRequest,
   updateFlightRequest,
-  getFlightLegsById,
 } from '../controllers/FlightRequest.controller';
 import {
   createUser,
@@ -18,8 +24,8 @@ import {
 import validateAuth from '../middleware/validateAuth';
 import { SubmitJotForm, getQuestions } from '../services/JotFormService';
 import express from 'express';
-import type { LooseAuthProp } from '@clerk/clerk-sdk-node';
 import type { Request, Response } from 'express';
+import type { LooseAuthProp } from '@clerk/clerk-sdk-node';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -44,8 +50,11 @@ router.get('/passenger/:id', validateAuth, getPassengerById);
 router.post('/passenger/:id', validateAuth, createPassenger);
 router.put('/passenger/:id', validateAuth, updatePassenger);
 
+/* Dashboard Controller Routes */
+router.get('/dashboard/', getDashboardStats);
+
 /* Flight Request Controller Routes */
-router.get('/requests/', validateAuth, getAllFlightRequestsForUser);
+router.get('/requests', validateAuth, getAllFlightRequestsForUser);
 router.get('/requests/:id', validateAuth, getFlightRequestById);
 router.get('/requests/:id/legs', validateAuth, getFlightLegsById);
 router.post('/requests/', validateAuth, createFlightRequest);
