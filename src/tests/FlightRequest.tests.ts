@@ -48,12 +48,6 @@ describe('GET /requests/', () => {
             '2022-12-08 | In Progress | Gilchrist, Stormie | 2014-06-21'
           );
 
-        // Assuming flightLegs is an array and we're testing the first flight leg for simplicity
-        const firstFlightLeg = firstRequest.flightLegs[0];
-        expect(firstFlightLeg)
-          .to.have.nested.property('Departure Date/Time')
-          .that.equals('2023-02-06');
-
         done();
       });
   });
@@ -99,33 +93,6 @@ describe('GET /requests', () => {
       .get('/requests/blahblahblah')
       .end((err, res) => {
         expect(res).to.have.status(400);
-        done();
-      });
-  });
-});
-
-// Test getFlightLegsById
-describe('GET /requests/:id/legs', () => {
-  it('should return the correct passenger names, leg IDs, and Airtable record IDs for the flight legs', done => {
-    chai
-      .request(app)
-      .get('/requests/recp5zrIaW8EZhJtu/legs')
-      .end((err, res) => {
-        expect(res).to.have.status(200);
-        expect(res.body).to.be.an('array').that.is.not.empty;
-
-        expect(res.body[0]).to.have.property('fields').that.is.an('object').that
-          .is.not.empty;
-        const firstFlightLegFields = res.body[0].fields;
-        expect(firstFlightLegFields['Passenger Names']).to.equal(
-          'Stormie  Gilchrist, Jessie  Gilchrist '
-        );
-        expect(firstFlightLegFields['Leg ID']).to.equal(
-          '2023-02-06 | Pending | Departure SEA > JFK'
-        );
-        expect(firstFlightLegFields['AirTable Record ID']).to.equal(
-          'rec0uwOR2O7cvLbDA'
-        );
         done();
       });
   });

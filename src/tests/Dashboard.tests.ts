@@ -36,7 +36,6 @@ describe('DASHBOARD dashboard/getDashboardStats', () => {
       .end((err, res) => {
         expect(res).to.have.status(200);
         expect(res.body['Flights This Week']).to.be.oneOf(['0', '1', '2', '3']);
-        console.log(res.body);
         done();
       });
   });
