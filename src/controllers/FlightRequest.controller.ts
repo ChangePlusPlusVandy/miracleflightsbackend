@@ -27,6 +27,20 @@ const base = new Airtable({
  * @param req - the request object
  * @param res - the response object
  */
+/**
+ * Get all flight requests for a given user
+ *
+ * Steps to complete:
+ * 1. Get the userId from the query parameters, if it doesn't exist return a 400
+ * 2. Make a call to AirTable to get all flight requests for the user, if that fails return a 500 (hint, use try/catch)
+ *    If there are no flight requests for the user return a 400. (hint: use the AirTable API, see TestControllers/retrievePassengers.ts for an example)
+ *    Another hint - we will be filtering by the "Patient AirTable Record ID" field in the AirTable
+ * 3. Remove any unnecessary data from the flight requests (there is a lot of data in the AirTable response we don't need)
+ * 4. Return the flight requests for the user
+ *
+ * @param req - the request object
+ * @param res - the response object
+ */
 export const getAllFlightRequestsForUser = async (
   req: Request,
   res: Response
@@ -38,7 +52,7 @@ export const getAllFlightRequestsForUser = async (
   }
 
   try {
-    // query Airtable for flight requests for the user ID
+    // Query Airtable for flight requests for the user ID
     const flightRequests = await base('Flight Requests (Trips)')
       .select({
         filterByFormula: `{Patient AirTable Record ID} = "${userId}"`,
@@ -51,28 +65,39 @@ export const getAllFlightRequestsForUser = async (
         .json({ error: 'No flight requests found for this user' });
     }
 
-    const trimmedFlightRequests = flightRequests.map(request =>
-      trimRequest(request as unknown as FlightRequestData)
-    );
+    // Trim unnecessary data from the flight requests
+    const trimmedFlightRequests = flightRequests
+      .map(request => request._rawJson)
+      .map(request => trimRequest(request as unknown as FlightRequestData));
 
-    // Retrieve flight legs for each flight request and format the data
-    const formattedFlightRequests = await Promise.all(
-      trimmedFlightRequests.map(async request => {
-        const flightLegs = await base('Flight Legs')
-          .select({
-            filterByFormula: `{Request AirTable Record ID} = "${request.id}"`,
-          })
-          .all();
+    // Get the flight leg IDs from the trimmed flight requests
+    const flightLegIds = trimmedFlightRequests
+      .map(request => request['Flight Legs'])
+      .flatMap(leg => leg);
 
-        // Format the flight request data and include the corresponding flight legs
-        return {
-          ...request,
-          flightLegs: flightLegs.map(leg =>
-            trimFlightLeg(leg as unknown as FlightLegData)
-          ),
-        };
+    // Query Airtable for the flight legs using the flight leg IDs
+    const flightLegs = await base('Flight Legs')
+      .select({
+        filterByFormula: `OR(${flightLegIds
+          .map(id => `RECORD_ID() = "${id}"`)
+          .join(',')})`,
       })
-    );
+      .all();
+
+    // Get the flight legs data
+    const flightLegsData = flightLegs.map(leg => leg._rawJson);
+
+    // Format the flight requests by replacing flight leg IDs with actual flight leg data
+    const formattedFlightRequests = trimmedFlightRequests.map(request => {
+      const flightLegs = flightLegsData.filter(leg =>
+        request['Flight Legs'].includes(leg.fields['AirTable Record ID'])
+      );
+
+      return {
+        ...request,
+        'Flight Legs': flightLegs.map(leg => trimFlightLeg(leg as FlightLegData)),
+      };
+    });
 
     return res.status(200).json(formattedFlightRequests);
   } catch (error) {

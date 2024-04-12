@@ -48,7 +48,7 @@ router.put('/passenger/:id', validateAuth, updatePassenger);
 router.get('/dashboard/', getDashboardStats);
 
 /* Flight Request Controller Routes */
-router.get('/requests/', validateAuth, getAllFlightRequestsForUser);
+router.get('/requests', validateAuth, getAllFlightRequestsForUser);
 router.get('/requests/:id', validateAuth, getFlightRequestById);
 router.get('/requests/:id/legs', validateAuth, getFlightLegsById);
 router.post('/requests/', validateAuth, createFlightRequest);
