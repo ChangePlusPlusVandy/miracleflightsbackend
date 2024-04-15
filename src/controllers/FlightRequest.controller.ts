@@ -55,33 +55,38 @@ export const getAllFlightRequestsForUser = async (
       .map(request => trimRequest(request as unknown as FlightRequestData));
 
     // Get the flight leg IDs from the trimmed flight requests
-    const flightLegIds = trimmedFlightRequests
-      .map(request => request['Flight Legs'])
-      .flatMap(leg => leg);
+    const flightLegIds =
+      trimmedFlightRequests?.map(request => request['Flight Legs']) || [];
 
     // Query Airtable for the flight legs using the flight leg IDs
-    const flightLegs = await base('Flight Legs')
-      .select({
-        filterByFormula: `OR(${flightLegIds
-          .map(id => `RECORD_ID() = "${id}"`)
-          .join(',')})`,
-      })
-      .all();
+    const flightLegsData = await Promise.all(
+      flightLegIds.map(async (idSection: string[]) =>
+        idSection && idSection.length > 0
+          ? await base('Flight Legs')
+              .select({
+                filterByFormula: `OR(${idSection
+                  .map(id => `RECORD_ID() = "${id}"`)
+                  .join(',')})`,
+              })
+              .all()
+          : []
+      )
+    );
 
-    // Get the flight legs data
-    const flightLegsData = flightLegs.map(leg => leg._rawJson);
+    const formattedFlightLegs = flightLegsData.map(leg =>
+      leg?.map(l =>
+        l?._rawJson ? trimFlightLeg(l?._rawJson as unknown as FlightLegData) : []
+      )
+    );
+
+    // formatted flight legs is an array of arrays, so we need to match the flight leg IDs to the flight requests
 
     // Format the flight requests by replacing flight leg IDs with actual flight leg data
-    const formattedFlightRequests = trimmedFlightRequests.map(request => {
-      const flightLegs = flightLegsData.filter(leg =>
-        request['Flight Legs'].includes(leg.fields['AirTable Record ID'])
-      );
-
-      return {
-        ...request,
-        'Flight Legs': flightLegs.map(leg => trimFlightLeg(leg as FlightLegData)),
-      };
-    });
+    const formattedFlightRequests = trimmedFlightRequests.map(request => ({
+      ...request,
+      'Flight Legs':
+        formattedFlightLegs[trimmedFlightRequests.indexOf(request)] || [],
+    }));
 
     return res.status(200).json(formattedFlightRequests);
   } catch (error) {
