@@ -242,7 +242,7 @@ describe('UTIL Trimming', () => {
     expect(passengerData.fields['All Flight Legs']).to.equal(
       trimmedPassenger['All Flight Legs']
     );
-    expect(passengerData.fields.Diagnosis).to.equal(trimmedPassenger.Diagnosis);
+    expect(passengerData.fields.Diagnoses).to.equal(trimmedPassenger.Diagnoses);
     expect(passengerData.fields['AirTable Record ID']).to.equal(
       trimmedPassenger['AirTable Record ID']
     );

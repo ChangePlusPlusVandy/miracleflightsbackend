@@ -1,6 +1,5 @@
 /* eslint-disable */
 import logger from '../util/logger';
-import { createTestPassengerData } from '../data/test-data';
 import { trimPassenger } from '../util/trim';
 import type { PassengerData } from '../interfaces/passenger/passenger.interface';
 import type { Request, Response } from 'express';

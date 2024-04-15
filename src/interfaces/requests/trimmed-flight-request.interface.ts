@@ -7,7 +7,7 @@ export interface TrimmedFlightRequest {
   'Request Type': string;
   'Household Size': number;
   'Passenger 2 Approval Status': string;
-  Diagnosis: string;
+  Diagnoses: string;
   'Passenger 3': string[];
   'Patient Type': string;
   Ethnicity: string[];

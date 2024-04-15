@@ -15,7 +15,7 @@ export const trimPassenger = (passenger: PassengerData): TrimmedPassenger => {
     Country,
     Email,
     Ethnicity,
-    Diagnosis,
+    Diagnoses,
     Age,
     City,
   } = fields;
@@ -40,7 +40,7 @@ export const trimPassenger = (passenger: PassengerData): TrimmedPassenger => {
     'Military Member': fields['Military Member'],
     'How did you hear about us': fields['How did you hear about us'],
     'All Flight Legs': fields['All Flight Legs'],
-    Diagnosis: Diagnosis,
+    Diagnoses: Diagnoses,
     'AirTable Record ID': fields['AirTable Record ID'],
     '# of Flight Legs': fields['# of Flight Legs'],
     '# of Booked Flight Requests': fields['# of Booked Flight Requests'],
@@ -63,7 +63,7 @@ export const trimPassenger = (passenger: PassengerData): TrimmedPassenger => {
 export const trimRequest = (request: FlightRequestData): TrimmedFlightRequest => {
   const { id, createdTime, fields } = request;
 
-  const { Diagnosis, Ethnicity, Education, Status, Patient } = fields;
+  const { Diagnoses, Ethnicity, Education, Status, Patient } = fields;
 
   const trimmedRequest: TrimmedFlightRequest = {
     id: id,
@@ -74,7 +74,7 @@ export const trimRequest = (request: FlightRequestData): TrimmedFlightRequest =>
     'Request Type': fields['Request Type'],
     'Household Size': fields['Household Size'],
     'Passenger 2 Approval Status': fields['Passenger 2 Approval Status'],
-    Diagnosis: Diagnosis,
+    Diagnoses: Diagnoses,
     'Passenger 3': fields['Passenger 3'],
     'Patient Type': fields['Patient Type'],
     Ethnicity: Ethnicity,

@@ -41,14 +41,18 @@ export const createTestPassengerData = (
         firstName: firstName,
         lastName: lastName,
       }),
-      'Household Income': faker.number.int({
-        min: 5000,
-        max: 400000,
-      }),
-      'Household Size': faker.number.int({
-        min: 1,
-        max: 8,
-      }),
+      'Household Income': faker.number
+        .int({
+          min: 5000,
+          max: 400000,
+        })
+        .toString(),
+      'Household Size': faker.number
+        .int({
+          min: 1,
+          max: 8,
+        })
+        .toString(),
       Ethnicity: faker.helpers.arrayElements(
         [
           'American Indian or Alaska Native',
@@ -91,7 +95,7 @@ export const createTestPassengerData = (
           max: 3,
         })
       ),
-      Diagnosis: faker.helpers.arrayElements(
+      Diagnoses: faker.helpers.arrayElements(
         [faker.string.uuid(), faker.string.uuid(), faker.string.uuid()],
         faker.number.int({
           min: 1,
@@ -175,10 +179,12 @@ export const createTestPassengerData = (
         min: 1,
         max: 3,
       }),
-      Age: faker.number.int({
-        min: 1,
-        max: 80,
-      }),
+      Age: faker.number
+        .int({
+          min: 1,
+          max: 80,
+        })
+        .toString(),
       Birthday: birthday,
       'Day Before Birthday': getPreviousDay(birthday),
       'BL - Site 1 (from All Flight Legs)': faker.helpers.arrayElements(
@@ -451,7 +457,7 @@ export const createTestFlightLegData = (
         max: 3,
       })
     ),
-    'Diagnosis (from Passengers)': faker.helpers.arrayElements(
+    'Diagnoses (from Passengers)': faker.helpers.arrayElements(
       [faker.lorem.sentence(), faker.lorem.sentence(), faker.lorem.sentence()],
       faker.number.int({
         min: 1,
@@ -525,7 +531,7 @@ export const createTestFlightRequestData = (
         'Friend or Family',
         'Other',
       ]),
-      Diagnosis: faker.lorem.sentence(),
+      Diagnoses: faker.lorem.sentence(),
       'Passenger 3': faker.helpers.arrayElements(
         [faker.string.uuid(), faker.string.uuid(), faker.string.uuid()],
         faker.number.int({

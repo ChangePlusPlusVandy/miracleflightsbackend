@@ -1,5 +1,6 @@
 import logger from '../util/logger';
 import { trimFlightLeg, trimRequest } from '../util/trim';
+import { createTestFlightLegData } from '../data/test-data';
 import Airtable from 'airtable';
 import dotenv from 'dotenv';
 import type { FlightLegData } from '../interfaces/legs/flight-leg.interface';
@@ -165,4 +166,56 @@ export const getFlightLegsById = async (req: Request, res: Response) => {
   }
 
   return res.status(200).send(flightLegs);
+};
+
+/**
+ * This function creates a flight request for a given user
+ *
+ * Steps to complete:
+ * 1. Use Joi to validate the request body, if it doesn't exist or is invalid return a 400
+ * 2. Create a fake flight request by making a call to JotForm. If that fails return a 500 (hint, use try/catch)
+ * 3. Return the flight request that was created
+ *
+ * @param req - the request object
+ * @param res - the response object
+ */
+export const createFlightRequest = async (req: Request, res: Response) => {
+  // get the flight request data from the request body
+  // const data = req.body;
+
+  // if (!data) {
+  //   return res.status(400).json({ error: 'Flight request data missing' });
+  // }
+  // use Joi to validate the request body
+  // ...
+
+  // create a fake flight request
+  const flightRequest = createTestFlightLegData(); // return the flight request
+
+  res.status(200).send(flightRequest);
+};
+
+/**
+ * This function updates a flight request for a given flightRequestId
+ *
+ * Steps to complete:
+ * 1. Get the flightRequestId from the path parameters, if it doesn't exist return a 400
+ * 2. Use Joi to validate the request body, if it doesn't exist or is invalid return a 400
+ * 3. Update the flight request by making a call to AirTable. If that fails return a 500 (hint, use try/catch)
+ * 4. Return the entire flight request that was updated, once again removing any unnecessary data
+ *
+ * @param req - the request object
+ * @param res - the response object
+ */
+export const updateFlightRequest = async (req: Request, res: Response) => {
+  // get the flightRequestId from the path parameters
+  // const { flightRequestId } = req.params;
+
+  // use Joi to validate the request body
+  // ...
+
+  // create a fake flight request that was "updated"
+  const flightRequest = createTestFlightLegData(); // return the flight request
+
+  res.status(200).send(flightRequest);
 };
