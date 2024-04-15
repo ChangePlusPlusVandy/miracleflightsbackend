@@ -14,8 +14,6 @@ import {
   getAllFlightRequestsForUser,
   getFlightRequestById,
   getFlightLegsById,
-  createFlightRequest,
-  updateFlightRequest,
 } from '../controllers/FlightRequest.controller';
 import { SubmitJotForm, getQuestions } from '../services/JotFormService';
 import express from 'express';
@@ -52,8 +50,6 @@ router.get('/dashboard/', getDashboardStats);
 router.get('/requests', validateAuth, getAllFlightRequestsForUser);
 router.get('/requests/:id', validateAuth, getFlightRequestById);
 router.get('/requests/:id/legs', validateAuth, getFlightLegsById);
-router.post('/requests/', validateAuth, createFlightRequest);
-router.put('/requests/:id', validateAuth, updateFlightRequest);
 
 router.post('/submit-flight-request', validateAuth, SubmitJotForm);
 router.get('/get-questions', validateAuth, getQuestions);

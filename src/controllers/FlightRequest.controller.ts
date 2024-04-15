@@ -1,7 +1,6 @@
-/* eslint-disable no-irregular-whitespace */
-import { createTestFlightLegData } from '../data/test-data';
 import logger from '../util/logger';
 import { trimFlightLeg, trimRequest } from '../util/trim';
+import { createTestFlightLegData } from '../data/test-data';
 import Airtable from 'airtable';
 import dotenv from 'dotenv';
 import type { FlightLegData } from '../interfaces/legs/flight-leg.interface';
@@ -13,20 +12,6 @@ const base = new Airtable({
   apiKey: process.env.AIRTABLE_API_KEY || '',
 }).base('appwPsfAb6U8CV3mf');
 
-/**
- * This function returns all flight requests for a given user
- *
- * Steps to complete:
- * 1. Get the userId from the query parameters, if it doesn't exist return a 400
- * 2. Make a call to AirTable to get all flight requests for the user, if that fails return a 500 (hint, use try/catch)
- *    If there are no flight requests for the user return a 400. (hint: use the AirTable API, see TestControllers/retrievePassengers.ts for an example)
- *    Another hint - we will be filtering by the "Passenger ID" field in the AirTable
- * 3. Remove any unnecessary data from the flight requests (there is a lot of data in the AirTable response we don't need)
- * 4. Return the flight requests for the user
- *
- * @param req - the request object
- * @param res - the response object
- */
 /**
  * Get all flight requests for a given user
  *

@@ -1,3 +1,4 @@
+/* eslint-disable autofix/no-unused-vars */
 import type { TrimmedPassenger } from '../passenger/trimmed-passenger.interface';
 
 // This is the question array for flight specfic data received from the front end

@@ -9,9 +9,6 @@ import type { Request, Response } from 'express';
  * @param res - the response object
  */
 export const getDashboardStats = async (req: Request, res: Response) => {
-  // use Joi to validate the request body
-  // ...
-
   const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY || '' }).base(
     'appwPsfAb6U8CV3mf'
   );

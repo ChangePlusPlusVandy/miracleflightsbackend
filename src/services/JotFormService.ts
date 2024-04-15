@@ -63,7 +63,8 @@ export const SubmitJotForm = async (req, res) => {
     flightRequestData: flightRequestData,
   };
 
-  const submissionData = JSON.stringify(restructureFlightRequest(rawData));
+  const restructuredData = restructureFlightRequest(rawData);
+  const submissionData = JSON.stringify(restructuredData);
 
   try {
     // form ID: 240586898219170 - clone one of the forms from the JotForm account
