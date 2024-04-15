@@ -17,11 +17,6 @@ import {
   createFlightRequest,
   updateFlightRequest,
 } from '../controllers/FlightRequest.controller';
-import {
-  createUser,
-  linkUserToAirtableRecord,
-} from '../controllers/User.controller';
-import validateAuth from '../middleware/validateAuth';
 import { SubmitJotForm, getQuestions } from '../services/JotFormService';
 import express from 'express';
 import type { Request, Response } from 'express';
