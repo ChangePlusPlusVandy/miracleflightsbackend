@@ -14,8 +14,6 @@ import {
   getAllFlightRequestsForUser,
   getFlightRequestById,
   getFlightLegsById,
-  createFlightRequest,
-  updateFlightRequest,
 } from '../controllers/FlightRequest.controller';
 import express from 'express';
 import type { Request, Response } from 'express';
@@ -51,7 +49,5 @@ router.get('/dashboard/', getDashboardStats);
 router.get('/requests', validateAuth, getAllFlightRequestsForUser);
 router.get('/requests/:id', validateAuth, getFlightRequestById);
 router.get('/requests/:id/legs', validateAuth, getFlightLegsById);
-router.post('/requests/', validateAuth, createFlightRequest);
-router.put('/requests/:id', validateAuth, updateFlightRequest);
 
 export default router;
