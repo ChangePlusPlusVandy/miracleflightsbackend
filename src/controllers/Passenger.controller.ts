@@ -11,7 +11,7 @@ dotenv.config();
 
 const base = new Airtable({
   apiKey: process.env.AIRTABLE_API_KEY || '',
-}).base('appwPsfAb6U8CV3mf');
+}).base(process.env.AIRTABLE_BASE_ID || '');
 
 /**
  * Get all of the related passengers for a user (people they have flown with in the past)
@@ -29,7 +29,7 @@ export const getAllPassengersForUser = async (req: Request, res: Response) => {
 
   const base = new Airtable({
     apiKey: process.env.AIRTABLE_API_KEY || '',
-  }).base('appwPsfAb6U8CV3mf');
+  }).base(process.env.AIRTABLE_BASE_ID || '');
 
   try {
     // make a call to AirTable to get all passengers for the user
@@ -93,7 +93,7 @@ export const getPassengerById = async (req: Request, res: Response) => {
 
   const base = new Airtable({
     apiKey: process.env.AIRTABLE_API_KEY || '',
-  }).base('appwPsfAb6U8CV3mf');
+  }).base(process.env.AIRTABLE_BASE_ID || '');
 
   try {
     await base('Passengers').find(
@@ -308,7 +308,7 @@ export const updatePassenger = async (req: Request, res: Response) => {
 
   const base = new Airtable({
     apiKey: process.env.AIRTABLE_API_KEY || '',
-  }).base('appwPsfAb6U8CV3mf');
+  }).base(process.env.AIRTABLE_BASE_ID || '');
 
   try {
     // make a call to AirTable to update the passenger
