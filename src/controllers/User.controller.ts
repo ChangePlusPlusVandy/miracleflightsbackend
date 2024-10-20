@@ -45,7 +45,7 @@ export const createUser = async (req: WithAuthProp<Request>, res: Response) => {
 
   const base = new Airtable({
     apiKey: process.env.AIRTABLE_API_KEY || '',
-  }).base('appwPsfAb6U8CV3mf');
+  }).base(process.env.AIRTABLE_BASE_ID || '');
 
   const passenger = await base('Passengers')
     .select({

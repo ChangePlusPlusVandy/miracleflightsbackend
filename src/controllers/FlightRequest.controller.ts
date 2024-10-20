@@ -10,7 +10,7 @@ dotenv.config();
 
 const base = new Airtable({
   apiKey: process.env.AIRTABLE_API_KEY || '',
-}).base('appwPsfAb6U8CV3mf');
+}).base(process.env.AIRTABLE_BASE_ID || '');
 
 /**
  * Get all flight requests for a given user
@@ -113,7 +113,7 @@ export const getFlightRequestById = async (req: Request, res: Response) => {
 
   const base = new Airtable({
     apiKey: process.env.AIRTABLE_API_KEY || '',
-  }).base('appwPsfAb6U8CV3mf');
+  }).base(process.env.AIRTABLE_BASE_ID || '');
 
   try {
     await base('Flight Requests (Trips)').find(
@@ -148,7 +148,7 @@ export const getFlightLegsById = async (req: Request, res: Response) => {
 
   const base = new Airtable({
     apiKey: process.env.AIRTABLE_API_KEY || '',
-  }).base('appwPsfAb6U8CV3mf');
+  }).base(process.env.AIRTABLE_BASE_ID || '');
 
   try {
     flightLegs = await base('Flight Legs')
