@@ -297,13 +297,20 @@ export const updatePassenger = async (req: Request, res: Response) => {
     'Household Income': Joi.number().optional(),
     'Household Size': Joi.number().optional(),
     'Marital Status': Joi.string().optional(),
-    Employment: Joi.string().optional,
+    Employment: Joi.string().optional(),
     'Military Service': Joi.string().optional(),
     'Military Member': Joi.array().optional(),
+    Gender: Joi.string().optional(),
+    'Date of Birth': Joi.string().optional(),
   });
 
-  if (schema.validate(passengerData).error) {
-    return res.status(400).send({ error: 'Invalid passenger data' });
+  const { error } = schema.validate(passengerData.records[0].fields);
+
+  if (error) {
+    console.error('Validation error:', JSON.stringify(error, null, 2));
+    return res
+      .status(400)
+      .send({ error: 'Invalid passenger data', details: error.details });
   }
 
   const base = new Airtable({
@@ -311,20 +318,18 @@ export const updatePassenger = async (req: Request, res: Response) => {
   }).base('appwPsfAb6U8CV3mf');
 
   try {
-    // make a call to AirTable to update the passenger
     await base('Passengers').update(
-      [{ id, fields: passengerData }],
+      passengerData.records,
       async (err, records) => {
         if (err) {
-          logger.error(err);
-          return;
+          console.error('Airtable update error:', err);
+          return res.status(500).json({ error: 'Error updating passenger data' });
         }
         res.status(200).send(records);
       }
     );
   } catch (err: any) {
-    // if that fails return a 500
-    logger.error(err);
-    return res.status(500).json({ error: 'Error updating' });
+    console.error('Unexpected error:', err);
+    return res.status(500).json({ error: 'Unexpected error while updating' });
   }
 };
