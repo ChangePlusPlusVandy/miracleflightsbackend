@@ -9,7 +9,9 @@ import type { Request, Response } from 'express';
  * @param res - the response object
  */
 export const getDashboardStats = async (req: Request, res: Response) => {
-  const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY || '' }).base(process.env.AIRTABLE_BASE_ID || '');
+  const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY || '' }).base(
+    process.env.AIRTABLE_BASE_ID || ''
+  );
 
   try {
     await base('Data Table')
