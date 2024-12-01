@@ -92,7 +92,7 @@ export const linkUserToAirtableRecord = async (
     return res.status(400).send('Airtable ID is required');
   }
 
-  if (process.env.ENVIRONMENT !== 'test') {
+  if (true /*process.env.ENVIRONMENT !== 'test'*/) {
     try {
       await clerkClient.users.updateUserMetadata(req.auth.userId || '', {
         publicMetadata: {

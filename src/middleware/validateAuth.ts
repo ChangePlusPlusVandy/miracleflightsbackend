@@ -21,7 +21,7 @@ const validateAuth = (
   next: NextFunction
 ) => {
   // If the environment is not test, use ClerkExpressWithAuth to validate the user's session
-  if (process.env.ENVIRONMENT !== 'test') {
+  if (true /*process.env.ENVIRONMENT !== 'test'*/) {
     // Use ClerkExpressWithAuth to validate the user's session then call next() if the user is authenticated
     ClerkExpressWithAuth({})(req, res, async () => {
       if (req.auth.sessionId && req.auth.userId) {
