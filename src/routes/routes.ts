@@ -15,11 +15,11 @@ import {
   getFlightRequestById,
   getFlightLegsById,
 } from '../controllers/FlightRequest.controller';
+import { uploadDocument } from '../controllers/Document.controller';
 import { SubmitJotForm, getQuestions } from '../services/JotFormService';
 import express from 'express';
 import type { Request, Response } from 'express';
 import type { LooseAuthProp } from '@clerk/clerk-sdk-node';
-import { uploadDocument } from "../controllers/Document.controller"; 
 import multer from "multer";
 
 declare global {
@@ -60,7 +60,9 @@ router.post('/submit-flight-request', validateAuth, SubmitJotForm);
 router.get('/get-questions', validateAuth, getQuestions);
 
 /* Document Controller Routes */
-router.get("/documents")
-router.post("/documents", upload.single("file"), uploadDocument);
+router.post('/documents', validateAuth, upload.single('file'), uploadDocument);
+
+// /* Webhook Route */
+// router.post(process.env.ZAPIER_WEBHOOK_KEY || '', validateAuth, uploadDocument)
 
 export default router;
