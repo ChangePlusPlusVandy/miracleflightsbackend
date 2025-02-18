@@ -14,8 +14,9 @@ import {
   getAllFlightRequestsForUser,
   getFlightRequestById,
   getFlightLegsById,
+  createFlightRequest,
 } from '../controllers/FlightRequest.controller';
-import { SubmitJotForm, getQuestions } from '../services/JotFormService';
+import { getQuestions } from '../services/JotFormService';
 import express from 'express';
 import type { Request, Response } from 'express';
 import type { LooseAuthProp } from '@clerk/clerk-sdk-node';
@@ -51,7 +52,7 @@ router.get('/requests', validateAuth, getAllFlightRequestsForUser);
 router.get('/requests/:id', validateAuth, getFlightRequestById);
 router.get('/requests/:id/legs', validateAuth, getFlightLegsById);
 
-router.post('/submit-flight-request', validateAuth, SubmitJotForm);
+router.post('/submit-flight-request', createFlightRequest);
 router.get('/get-questions', validateAuth, getQuestions);
 
 export default router;
