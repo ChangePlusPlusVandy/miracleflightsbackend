@@ -21,6 +21,7 @@ const validateAuth = (
   next: NextFunction
 ) => {
   // If the environment is not test, use ClerkExpressWithAuth to validate the user's session
+  // eslint-disable-next-line no-constant-condition
   if (true /*process.env.ENVIRONMENT !== 'test'*/) {
     // Use ClerkExpressWithAuth to validate the user's session then call next() if the user is authenticated
     ClerkExpressWithAuth({})(req, res, async () => {

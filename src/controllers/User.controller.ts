@@ -92,6 +92,7 @@ export const linkUserToAirtableRecord = async (
     return res.status(400).send('Airtable ID is required');
   }
 
+  // eslint-disable-next-line no-constant-condition
   if (true /*process.env.ENVIRONMENT !== 'test'*/) {
     try {
       await clerkClient.users.updateUserMetadata(req.auth.userId || '', {

@@ -1,8 +1,10 @@
 import logger from '../util/logger';
 import { trimFlightLeg, trimRequest } from '../util/trim';
 import { createTestFlightLegData } from '../data/test-data';
+import { formatISODateForAirtable } from '../util/dateUtils';
 import Airtable from 'airtable';
 import dotenv from 'dotenv';
+import Joi from 'joi';
 import type { FlightLegData } from '../interfaces/legs/flight-leg.interface';
 import type { Request, Response } from 'express';
 import type { FlightRequestData } from '../interfaces/requests/flight-request.interface';
@@ -11,6 +13,31 @@ dotenv.config();
 const base = new Airtable({
   apiKey: process.env.AIRTABLE_API_KEY || '',
 }).base(process.env.AIRTABLE_BASE_ID || '');
+
+// Define the schema for request validation using Joi
+const flightRequestSchema = Joi.object({
+  patient: Joi.object({
+    id: Joi.string().required(),
+    // Add other necessary patient fields here
+  })
+    .unknown(true)
+    .required(), // Allow unknown properties
+  passengerTwo: Joi.object().optional(),
+  passengerThree: Joi.object().optional(),
+  flightRequestData: Joi.object({
+    travelType: Joi.boolean().required(),
+    ScheduledMedicalAppointmentDate: Joi.date().required(),
+    DepartureDate: Joi.date().required(),
+    AirportOfOrigin: Joi.string().required(),
+    AlternateAirportOfOrigin: Joi.string().optional(),
+    DestinationAirport: Joi.string().required(),
+    AlternateDestinationAirport: Joi.string().optional(),
+    ReturnDate: Joi.date().required(),
+    FullNameOfTreatmentSite: Joi.string().required(),
+    FullNameOfPrimaryTreatmentSiteDoctor: Joi.string().required(),
+    // Add other necessary flight request fields here
+  }).required(),
+});
 
 /**
  * Get all flight requests for a given user
@@ -30,7 +57,7 @@ export const getAllFlightRequestsForUser = async (
   req: Request,
   res: Response
 ) => {
-  const { userId } = req.query;
+  const userId = req.body.patient.id;
 
   if (!userId) {
     return res.status(400).json({ error: 'Passenger ID missing' });
@@ -53,7 +80,10 @@ export const getAllFlightRequestsForUser = async (
     // Trim unnecessary data from the flight requests
     const trimmedFlightRequests = flightRequests
       .map(request => request._rawJson)
-      .map(request => trimRequest(request as unknown as FlightRequestData));
+      .map(request => {
+        const trimmed = trimRequest(request as unknown as FlightRequestData);
+        return trimmed;
+      });
 
     // Get the flight leg IDs from the trimmed flight requests
     const flightLegIds =
@@ -61,26 +91,34 @@ export const getAllFlightRequestsForUser = async (
 
     // Query Airtable for the flight legs using the flight leg IDs
     const flightLegsData = await Promise.all(
-      flightLegIds.map(async (idSection: string[]) =>
-        idSection && idSection.length > 0
-          ? await base('Flight Legs')
-              .select({
-                filterByFormula: `OR(${idSection
-                  .map(id => `RECORD_ID() = "${id}"`)
-                  .join(',')})`,
-              })
-              .all()
-          : []
-      )
+      flightLegIds.map(async (idSection: string[]) => {
+        if (idSection && idSection.length > 0) {
+          const legs = await base('Flight Legs')
+            .select({
+              filterByFormula: `OR(${idSection
+                .map(id => `RECORD_ID() = "${id}"`)
+                .join(',')})`,
+            })
+            .all();
+          return legs;
+        } else {
+          return [];
+        }
+      })
     );
 
     const formattedFlightLegs = flightLegsData.map(leg =>
-      leg?.map(l =>
-        l?._rawJson ? trimFlightLeg(l?._rawJson as unknown as FlightLegData) : []
-      )
+      leg?.map(l => {
+        if (l?._rawJson) {
+          const trimmedLeg = trimFlightLeg(
+            l?._rawJson as unknown as FlightLegData
+          );
+          return trimmedLeg;
+        } else {
+          return [];
+        }
+      })
     );
-
-    // formatted flight legs is an array of arrays, so we need to match the flight leg IDs to the flight requests
 
     // Format the flight requests by replacing flight leg IDs with actual flight leg data
     const formattedFlightRequests = trimmedFlightRequests.map(request => ({
@@ -91,7 +129,6 @@ export const getAllFlightRequestsForUser = async (
 
     return res.status(200).json(formattedFlightRequests);
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ error: 'Error fetching flight requests' });
   }
 };
@@ -180,19 +217,48 @@ export const getFlightLegsById = async (req: Request, res: Response) => {
  * @param res - the response object
  */
 export const createFlightRequest = async (req: Request, res: Response) => {
-  // get the flight request data from the request body
-  // const data = req.body;
+  // Step 1: Validate the request body
+  const { error } = flightRequestSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ error: error.details[0].message });
+  }
 
-  // if (!data) {
-  //   return res.status(400).json({ error: 'Flight request data missing' });
-  // }
-  // use Joi to validate the request body
-  // ...
+  // Extract data from the request body
+  const { flightRequestData } = req.body;
 
-  // create a fake flight request
-  const flightRequest = createTestFlightLegData(); // return the flight request
+  // Create the new flight request data
+  const newFlightRequest = {
+    'Trip Type': flightRequestData.travelType ? 'One Way' : 'Roundtrip',
+    'Departure Date': formatISODateForAirtable(flightRequestData.DepartureDate),
+    'Request Type': 'Medical Flight', // Assuming this is constant
+    'Patient Type': 'Child Patient', // Assuming this is constant
+    'Submission Date': new Date().toISOString().split('T')[0], // Current date
+    'Alt Destination Airport': flightRequestData.AlternateDestinationAirport,
+    'Flight Specialist': 'Becky', // Assuming this is constant
+    'Appt Date': flightRequestData.ScheduledMedicalAppointmentDate,
+    'First Request': 'Yes', // Assuming this is constant
+    Status: 'Not Started', // Assuming this is constant
+    'Origin Airport': flightRequestData.AirportOfOrigin,
+    'Destination Airport': flightRequestData.DestinationAirport,
+    'Alt. Origin Airport': flightRequestData.AlternateAirportOfOrigin,
+    'Return Date': formatISODateForAirtable(flightRequestData.ReturnDate),
+    // Add other necessary fields here
+  } as any;
 
-  res.status(200).send(flightRequest);
+  try {
+    // Step 2: Make a call to Airtable to create a new flight request
+    const createdRecord = await base('Flight Requests (Trips)').create(
+      newFlightRequest
+    );
+
+    // Step 3: Return the flight request that was created
+    return res.status(200).json({
+      message: 'Flight request created successfully',
+      flightRequest: createdRecord,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: 'Internal server error' });
+  }
 };
 
 /**
