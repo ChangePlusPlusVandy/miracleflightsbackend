@@ -22,6 +22,7 @@ import multer from 'multer';
 import express from 'express';
 import type { Request, Response } from 'express';
 import type { LooseAuthProp } from '@clerk/clerk-sdk-node';
+import { getAirports } from '../controllers/Airports.controller';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -56,6 +57,9 @@ router.get('/dashboard/', getDashboardStats);
 router.get('/requests', validateAuth, getAllFlightRequestsForUser);
 router.get('/requests/:id', validateAuth, getFlightRequestById);
 router.get('/requests/:id/legs', validateAuth, getFlightLegsById);
+
+/* Airport Data Controller Routes */
+router.get('/airports', getAirports);
 
 router.post('/submit-flight-request', createFlightRequest);
 router.get('/get-questions', validateAuth, getQuestions);
