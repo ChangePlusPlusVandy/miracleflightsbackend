@@ -57,7 +57,7 @@ export const getAllFlightRequestsForUser = async (
   req: Request,
   res: Response
 ) => {
-  const userId = req.body.patient.id;
+  const { userId } = req.query;
 
   if (!userId) {
     return res.status(400).json({ error: 'Passenger ID missing' });
