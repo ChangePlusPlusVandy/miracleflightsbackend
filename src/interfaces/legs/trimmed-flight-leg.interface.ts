@@ -24,4 +24,5 @@ export interface TrimmedFlightLeg {
   'Patient Name': string[];
   'Patient Latest Trip': string[];
   'Is Latest Trip': string;
+  'Treatment Site Verification': string;
 }

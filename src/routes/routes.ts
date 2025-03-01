@@ -18,11 +18,11 @@ import {
 } from '../controllers/FlightRequest.controller';
 import { uploadDocument } from '../controllers/Document.controller';
 import { getQuestions } from '../services/JotFormService';
+import { getAirports } from '../controllers/Airports.controller';
 import multer from 'multer';
 import express from 'express';
 import type { Request, Response } from 'express';
 import type { LooseAuthProp } from '@clerk/clerk-sdk-node';
-import { getAirports } from '../controllers/Airports.controller';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace

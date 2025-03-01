@@ -89,4 +89,5 @@ export interface FlightRequestData {
     'Request ID': string;
     Email: string[];
   };
+  'Treatment Site Verification': string;
 }

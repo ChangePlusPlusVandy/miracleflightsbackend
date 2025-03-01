@@ -51,5 +51,6 @@ export interface FlightLegData {
     'Date of Birth (from Passengers) 2': string[];
     'TS City, State (from Treatment Site Totals 2) (from Passengers)': string[];
     '48 Hours After Flight': string;
+    'Treatment Site Verification': string;
   };
 }
