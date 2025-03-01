@@ -53,4 +53,6 @@ export interface TrimmedFlightRequest {
   '# of Legs': number;
   'Total # of Legs': number;
   'Request ID': string;
+
+  'Treatment Site Verification': string;
 }

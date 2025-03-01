@@ -117,6 +117,7 @@ export const trimRequest = (request: FlightRequestData): TrimmedFlightRequest =>
     '# of Legs': fields['# of Legs'],
     'Total # of Legs': fields['Total # of Legs'],
     'Request ID': fields['Request ID'],
+    'Treatment Site Verification': fields['Treatment Site Verification'],
   };
 
   return trimmedRequest;
@@ -153,6 +154,7 @@ export const trimFlightLeg = (request: FlightLegData): TrimmedFlightLeg => {
     'Patient Name': fields['Patient Name'],
     'Patient Latest Trip': fields['Patient Latest Trip'],
     'Is Latest Trip': fields['Is Latest Trip'],
+    'Treatment Site Verification': fields['Treatment Site Verification'],
   };
 
   return trimmedLeg;
