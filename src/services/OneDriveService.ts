@@ -233,9 +233,22 @@ async function createFolder(
  * @param res
  */
 export const getDocuments = async (req, res) => {
-  const patientName = req.body.patient_name;
+  const patientName = req.query.patientName as string;
+
+  if (!patientName) { return res.status(400).json({ message: "Missing query params"}) }
+
+  try {
+    const authResponse = await cca.acquireTokenByClientCredential({
+      scopes: ['https://graph.microsoft.com/.default'],
+    });
+    const token = authResponse?.accessToken as string;
 
 
+
+  } catch (e) {
+    console.error(e)
+    return res.status(500).json({ message: "Internal server error (500)"});
+  }
 };
 
 /**
@@ -265,6 +278,11 @@ export const getAccompanyingPassengerFile = async (req, res) => {
       scopes: ['https://graph.microsoft.com/.default'],
     });
     const token = authResponse?.accessToken as string;
+
+    // fallback validation
+    await findPatientFolder(patientName, token)
+    await findAccompanyingPassengerFolder(patientName, formattedPassengerName, token)
+
     const result = await axios.get(
       `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}/accompanying_passengers/${formattedPassengerName}:/children`,
       {
@@ -275,20 +293,18 @@ export const getAccompanyingPassengerFile = async (req, res) => {
     );
     return res.status(200).json(result.data);
   } catch (e) {
-    console.error('Internal server error:', e);
-    return res.status(500);
+    console.error(e);
+    return res.status(500).json({ message: "Internal server error (500)"});
   }
 }
 
-/**
- * 
- * @param req 
- * @param res 
- */
-export const getTreatmentSiteVerification = async (req, res) => {
-  const patientName = req.body.patient_name;
-  
-}
+// /**
+//  * 
+//  * @param req 
+//  * @param res 
+//  */
+// export const getTreatmentSiteVerification = async (req, res) => {
+// }
 
 /**
  *
