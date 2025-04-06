@@ -19,6 +19,12 @@ import {
 import { uploadDocument } from '../controllers/Document.controller';
 import { getQuestions } from '../services/JotFormService';
 import { getAirports } from '../controllers/Airports.controller';
+import {
+  locatePatientFolder,
+  populatePatientFolder,
+  populateAccompanyingPassengersFolder,
+  populateTripsFolder,
+} from '../services/OneDriveService';
 import multer from 'multer';
 import express from 'express';
 import type { Request, Response } from 'express';
@@ -69,5 +75,15 @@ router.post('/documents', validateAuth, upload.single('file'), uploadDocument);
 
 // /* Webhook Route */
 // router.post(process.env.ZAPIER_WEBHOOK_KEY || '', validateAuth, uploadDocument)
+
+/* OneDrive Service Route */
+router.get('/test-patient', validateAuth, locatePatientFolder);
+router.post('/test-populate', validateAuth, populatePatientFolder);
+router.post(
+  '/test-populate-accompanying',
+  validateAuth,
+  populateAccompanyingPassengersFolder
+);
+router.post('/test-populate-trips', validateAuth, populateTripsFolder);
 
 export default router;
