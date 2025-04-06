@@ -8,6 +8,7 @@ const createRedisClient = (): RedisClientType => {
       host: process.env.HOST || 'localhost',
       port: parseInt(process.env.REDIS_PORT || '6379'),
     },
+    // password: process.env.REDIS_PASSWORD
   });
 
   client.on('error', (e: Error) => {

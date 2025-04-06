@@ -5,6 +5,7 @@ import type {
   RedisFunctions,
   RedisScripts,
 } from 'redis';
+import { encryptionUtil } from '../../util/encryption';
 
 const CACHE_KEY = process.env.CACHE_KEY as string; // app cache
 const CACHE_TTL = 60 * 60 * 24; // 24 hour duration
@@ -41,6 +42,11 @@ class redisClientWrapper implements ICacheClient {
    */
   public async get(): Promise<string> {
     try {
+      const data = await this.cacheClient.get(CACHE_KEY);
+      if (data) {
+        return await encryptionUtil.decrypt(data);
+      }
+
       return (await this.cacheClient.get(CACHE_KEY)) || EMPTY_STRING;
     } catch (e) {
       console.error(e);
@@ -56,9 +62,10 @@ class redisClientWrapper implements ICacheClient {
    * @returns
    */
   public async set(_key: string, value: string): Promise<string> {
+    const encryptedValue = await encryptionUtil.encrypt(value);
     try {
       return (
-        (await this.cacheClient.set(CACHE_KEY, value, { EX: CACHE_TTL })) ||
+        (await this.cacheClient.set(CACHE_KEY, encryptedValue, { EX: CACHE_TTL })) ||
         EMPTY_STRING
       );
     } catch (e) {
@@ -67,6 +74,6 @@ class redisClientWrapper implements ICacheClient {
 
     return EMPTY_STRING;
   }
-}
+};
 
 export default redisClientWrapper;
