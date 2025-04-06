@@ -18,6 +18,14 @@ import {
 } from '../controllers/FlightRequest.controller';
 import { uploadDocument } from '../controllers/Document.controller';
 import { getQuestions } from '../services/JotFormService';
+import { getAirports } from '../controllers/Airports.controller';
+import {
+  locatePatientFolder,
+  populatePatientFolder,
+  populateAccompanyingPassengersFolder,
+  populateTripsFolder,
+  getAccompanyingPassengerFile
+} from '../services/OneDriveService';
 import multer from 'multer';
 import express from 'express';
 import type { Request, Response } from 'express';
@@ -57,6 +65,9 @@ router.get('/requests', validateAuth, getAllFlightRequestsForUser);
 router.get('/requests/:id', validateAuth, getFlightRequestById);
 router.get('/requests/:id/legs', validateAuth, getFlightLegsById);
 
+/* Airport Data Controller Routes */
+router.get('/airports', getAirports);
+
 router.post('/submit-flight-request', createFlightRequest);
 router.get('/get-questions', validateAuth, getQuestions);
 
@@ -65,5 +76,16 @@ router.post('/documents', validateAuth, upload.single('file'), uploadDocument);
 
 // /* Webhook Route */
 // router.post(process.env.ZAPIER_WEBHOOK_KEY || '', validateAuth, uploadDocument)
+
+/* OneDrive Service Route */
+router.get('/test-patient', validateAuth, locatePatientFolder);
+router.post('/test-populate', validateAuth, populatePatientFolder);
+router.post(
+  '/test-populate-accompanying',
+  validateAuth,
+  populateAccompanyingPassengersFolder
+);
+router.post('/test-populate-trips', validateAuth, populateTripsFolder);
+router.get('/get-accompanying-document', validateAuth, getAccompanyingPassengerFile);
 
 export default router;

@@ -484,6 +484,7 @@ export const createTestFlightLegData = (
         })
       ),
     '48 Hours After Flight': faker.helpers.arrayElement(['Yes', 'No']),
+    'Treatment Site Verification': faker.company.name(),
     ...manualData.fields,
   },
   ...manualData,
