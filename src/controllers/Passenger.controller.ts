@@ -287,6 +287,7 @@ export const updatePassenger = async (req: Request, res: Response) => {
 
   const schema = Joi.object({
     Street: Joi.string().optional(),
+    Relationship: Joi.string().optional().allow(''),
     City: Joi.string().optional(),
     State: Joi.string().optional(),
     Country: Joi.string().optional(),
