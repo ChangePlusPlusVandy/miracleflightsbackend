@@ -3,6 +3,7 @@ import type {
   TokenCacheContext,
   ICacheClient,
 } from '@azure/msal-node';
+import { encryptionUtil } from '../../util/encryption';
 
 const CACHE_KEY = process.env.CACHE_KEY as string;
 
@@ -17,7 +18,8 @@ class redisCachePlugin implements ICachePlugin {
     try {
       const cacheData = await this.client.get(CACHE_KEY);
       if (cacheData) {
-        cacheContext.tokenCache.deserialize(cacheData);
+        const decryptedCacheData = await encryptionUtil.decrypt(cacheData);
+        cacheContext.tokenCache.deserialize(decryptedCacheData);
       } else {
         console.log('Cache miss: No token cache found in Redis');
       }
@@ -28,7 +30,10 @@ class redisCachePlugin implements ICachePlugin {
 
   public async afterCacheAccess(cacheContext: TokenCacheContext): Promise<void> {
     if (cacheContext.cacheHasChanged) {
-      await this.client.set(CACHE_KEY, cacheContext.tokenCache.serialize());
+      const serializedCache = cacheContext.tokenCache.serialize();
+      const encryptedCache = await encryptionUtil.encrypt(serializedCache);
+      await this.client.set(CACHE_KEY, encryptedCache);
+
     }
   }
 }

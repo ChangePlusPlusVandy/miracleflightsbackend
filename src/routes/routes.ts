@@ -24,6 +24,7 @@ import {
   populatePatientFolder,
   populateAccompanyingPassengersFolder,
   populateTripsFolder,
+  getAccompanyingPassengerFile
 } from '../services/OneDriveService';
 import multer from 'multer';
 import express from 'express';
@@ -85,5 +86,6 @@ router.post(
   populateAccompanyingPassengersFolder
 );
 router.post('/test-populate-trips', validateAuth, populateTripsFolder);
+router.get('/get-accompanying-document', validateAuth, getAccompanyingPassengerFile);
 
 export default router;
