@@ -245,18 +245,20 @@ export const getDocuments = async (req, res) => {
  * @param res The value parameter is used for determining if there are files within
  */
 export const getAccompanyingPassengerFile = async (req, res) => {
-  const patientName = req.body.patient_name;
-   // this should be an array with information containing passenger name (fullName) + date of birth (dob)
-  const passenger = req.body.passenger[0];
+  const patientName = req.query.patientName as string;
+  const passengerName = req.query.passengerFullName as string;
+  const passengerDob = req.query.passengerDob as string;
 
-  const age = await checkAge(passenger.dob)
+  if (!patientName || !passengerName || !passengerDob ) { return res.status(400).json({ message: "Missing query params"}) }
+  
+  const age = await checkAge(passengerDob)
 
   // conditional check: if accompanying passenger is legal adult, no need for documents
   if (age >= 18) {
     return res.status(200).json({ value: []})
   }
 
-  const formattedPassengerName = passenger.fullName.trim().split(/\s+/).join('_'); // formatting check
+  const formattedPassengerName = passengerName.trim().split(/\s+/).join('_'); // formatting check
 
   try {
     const authResponse = await cca.acquireTokenByClientCredential({
@@ -276,6 +278,16 @@ export const getAccompanyingPassengerFile = async (req, res) => {
     console.error('Internal server error:', e);
     return res.status(500);
   }
+}
+
+/**
+ * 
+ * @param req 
+ * @param res 
+ */
+export const getTreatmentSiteVerification = async (req, res) => {
+  const patientName = req.body.patient_name;
+  
 }
 
 /**
