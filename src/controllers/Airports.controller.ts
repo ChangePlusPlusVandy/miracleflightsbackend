@@ -15,11 +15,7 @@ const base = new Airtable({
  */
 export const getAirports = async (_req: Request, res: Response) => {
   try {
-    const records = await base('All Airports')
-      .select({
-        maxRecords: 200,
-      })
-      .all();
+    const records = await base('All Airports').select().all();
 
     const airports = records.map(record => ({
       id: record.id,
