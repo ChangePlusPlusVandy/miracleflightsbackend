@@ -224,7 +224,12 @@ export const createFlightRequest = async (req: Request, res: Response) => {
   }
 
   // Extract data from the request body
-  const { flightRequestData } = req.body;
+  const {
+    flightRequestData,
+    patient,
+    passengerTwo = null,
+    passengerThree = null,
+  } = req.body;
 
   // Create the new flight request data
   const newFlightRequest = {
@@ -242,16 +247,17 @@ export const createFlightRequest = async (req: Request, res: Response) => {
     'Destination Airport': flightRequestData.DestinationAirport,
     'Alt. Origin Airport': flightRequestData.AlternateAirportOfOrigin,
     'Return Date': formatISODateForAirtable(flightRequestData.ReturnDate),
+    Patient: [patient.id],
+    'Passenger 2': passengerTwo?.id ? [passengerTwo.id] : [],
+    'Passenger 3': passengerThree?.id ? [passengerThree.id] : [],
+
     // Add other necessary fields here
   } as any;
-
   try {
-    // Step 2: Make a call to Airtable to create a new flight request
     const createdRecord = await base('Flight Requests (Trips)').create(
       newFlightRequest
     );
 
-    // Step 3: Return the flight request that was created
     return res.status(200).json({
       message: 'Flight request created successfully',
       flightRequest: createdRecord,
