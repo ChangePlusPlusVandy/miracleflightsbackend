@@ -1,18 +1,19 @@
 import msalConfig from '../config/msalConfig';
-import { formatLocalDate } from '../util/dateUtils';
+import { formatISODateTime, formatLocalDate } from '../util/dateUtils';
 import express from 'express';
 import axios from 'axios';
 import { ConfidentialClientApplication } from '@azure/msal-node';
 import type { TrimmedFlightRequest } from '../interfaces/requests/trimmed-flight-request.interface';
 import type { FlightLegData } from '../interfaces/legs/flight-leg.interface';
+import type { DocumentsData, FileData } from '../interfaces/documents/documents.interface';
 
 const app = express();
 app.use(express.json());
 
 /**
  * Reusuable service for accessing, managing, and restructuring the onedrive associated
- * with Jotform account. Handles multiple aspects of Microsoft Graph API and OneDrive:
- *
+ * with Jotform account. Handles multiple aspects of Microsoft Graph API and OneDrive. Refer to README.md 
+ * for detailed breakdown of core functionality and endpoint details.
  *
  */
 
@@ -28,13 +29,14 @@ const cca = new ConfidentialClientApplication(msalConfig);
  */
 export const locatePatientFolder = async (req, res): Promise<Response> => {
   const patientName = req.body.patient_name;
+  const airtableID = req.body.airtableID;
 
   try {
     const authResponse = await cca.acquireTokenByClientCredential({
       scopes: ['https://graph.microsoft.com/.default'],
     });
     const token = authResponse?.accessToken as string;
-    const result = await findPatientFolder(patientName, token);
+    const result = await findPatientFolder(patientName, airtableID, token);
 
     return res.status(result.status).json(result.data);
   } catch (e: any) {
@@ -54,23 +56,26 @@ export const locatePatientFolder = async (req, res): Promise<Response> => {
  */
 export const populatePatientFolder = async (req, res) => {
   const patientName = req.body.patient_name;
+  const airtableID = req.body.airtableID;
+  
   try {
     const authResponse = await cca.acquireTokenByClientCredential({
       scopes: ['https://graph.microsoft.com/.default'],
     });
     const token = authResponse?.accessToken as string;
-    const patientSearch = await findPatientFolder(patientName, token);
+    const patientSearch = await findPatientFolder(patientName, airtableID, token);
 
     if (patientSearch.status == 200) {
       const [tripsStatus, accompanyingStatus, documentsStatus] =
         await Promise.all([
-          createFolder({ folderName: 'trips' }, patientName, token),
+          createFolder({ folderName: 'trips' }, patientName, airtableID, token),
           createFolder(
             { folderName: 'accompanying_passengers' },
             patientName,
+            airtableID,
             token
           ),
-          createFolder({ folderName: 'documents' }, patientName, token),
+          createFolder({ folderName: 'documents' }, patientName, airtableID, token),
         ]);
 
       const responseData: PopulateFolderResponse = {
@@ -100,11 +105,12 @@ export const populatePatientFolder = async (req, res) => {
  */
 async function findPatientFolder(
   patientName: string,
+  airtableID: string,
   token: string
 ): Promise<any> {
   try {
     const result = await axios.get(
-      `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}:/`,
+      `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}_${airtableID}:/`,
       {
         headers: {
           Authorization: `bearer ${token}`,
@@ -116,8 +122,8 @@ async function findPatientFolder(
     // resource not found
     if (e.response?.status == 404) {
       try {
-        await createPatientFolder(patientName, token);
-        return await findPatientFolder(patientName, token);
+        await createPatientFolder(patientName, airtableID, token);
+        return await findPatientFolder(patientName, airtableID, token);
       } catch (createError) {
         console.error('Error creating patient folder:', createError);
         throw createError;
@@ -136,10 +142,11 @@ async function findPatientFolder(
  */
 async function createPatientFolder(
   patientName: string,
+  airtableID: string,
   token: string
 ): Promise<number> {
   const requestBody = {
-    name: patientName,
+    name: `${patientName}_${airtableID}`,
     folder: {},
     '@microsoft.graph.conflictBehavior': 'fail', // should fail if there was a callback issue and the patient top folder does already exist
   };
@@ -196,6 +203,7 @@ interface PopulateFolderResponse {
 async function createFolder(
   params: FolderOperationParams,
   patientName: string,
+  airtableID: string,
   token: string
 ): Promise<number> {
   const defaultBody = {
@@ -207,7 +215,7 @@ async function createFolder(
   const requestBody = { ...defaultBody, ...params.additionalParams };
   try {
     const result = await axios.post(
-      `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}:/children`,
+      `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}_${airtableID}:/children`,
       requestBody,
       {
         headers: {
@@ -234,6 +242,7 @@ async function createFolder(
  */
 export const getDocuments = async (req, res) => {
   const patientName = req.query.patientName as string;
+  const airtableID = req.query.airtableID as string;
 
   if (!patientName) { return res.status(400).json({ message: "Missing query params"}) }
 
@@ -245,20 +254,19 @@ export const getDocuments = async (req, res) => {
     });
     const token = authResponse?.accessToken as string;
 
-    await findPatientFolder(formattedPatientName, token)
-    await createFolder({ folderName: 'documents' }, formattedPatientName, token)
+    await findPatientFolder(formattedPatientName, airtableID, token)
+    await createFolder({ folderName: 'documents' }, formattedPatientName, airtableID, token)
 
     const result = await axios.get(
-      `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}/documents:/children`,
+      `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}_${airtableID}/documents:/children`,
       {
         headers: {
           Authorization: `bearer ${token}`,
         },
       }
     );
-
-    return res.status(200).json(result.data);
-
+    const documentsData = await formatDocumentsData(result.data.value || [], patientName, airtableID);
+    return res.status(200).json(documentsData);
   } catch (e) {
     console.error(e)
     return res.status(500).json({ message: "Internal server error (500)"});
@@ -266,17 +274,51 @@ export const getDocuments = async (req, res) => {
 };
 
 /**
- * Retrieves file information 
+ * Formats document data
+ * @param rawFiles 
+ * @param patientName 
+ * @returns 
+ */
+async function formatDocumentsData(rawFiles: any[], patientName: string, airtableID: string): Promise<DocumentsData> {
+  const formattedPatientName = patientName.trim().split(/\s+/).join('_');
+
+  // expected file formats
+  const birthCert = `${formattedPatientName}_${airtableID}_birth_certificate.pdf`;
+  const financialCert = `${formattedPatientName}_${airtableID}_financial_certificate.pdf`
+
+  // based on interface for FileData
+  const files: FileData[] = rawFiles.map((file) => ({
+    id: file.id,
+    name: file.name,
+    downloadUrl: file["@microsoft.graph.downloadUrl"], // for a clickable reference to document
+    createdDateTime: formatISODateTime(file.createdDateTime), // MM/DD/YYYY - 00:00:00
+  })) as FileData[];
+
+  // determine if the birth certificate exists for patient
+  const birthCertExists = rawFiles.some(
+    (file) => file.name === birthCert
+  );
+  // determine if the financial certificate exists for patient
+  const financialCertExists = rawFiles.some(
+    (file) => file.name === financialCert
+  );
+
+  return { files, birthCertExists, financialCertExists}
+}
+
+/**
+ * Retrieves file information for a specific accompanying passenger
  * 
  * @param req 
- * @param res The value parameter is used for determining if there are files within
+ * @param res The value parameter is used for determining if there are files within - empty array response indicates no files exist
  */
 export const getAccompanyingPassengerFile = async (req, res) => {
   const patientName = req.query.patientName as string;
+  const airtableID = req.query.airtableID as string;
   const passengerName = req.query.passengerFullName as string;
   const passengerDob = req.query.passengerDob as string;
 
-  if (!patientName || !passengerName || !passengerDob ) { return res.status(400).json({ message: "Missing query params"}) }
+  if (!patientName || !airtableID || !passengerName || !passengerDob ) { return res.status(400).json({ message: "Missing query params"}) }
   
   const age = await checkAge(passengerDob)
 
@@ -296,12 +338,12 @@ export const getAccompanyingPassengerFile = async (req, res) => {
     const token = authResponse?.accessToken as string;
 
     // fallback validation
-    await findPatientFolder(formattedPatientName, token)
-    await createFolder({ folderName: 'accompanying_passengers' }, formattedPatientName, token)
-    await findAccompanyingPassengerFolder(formattedPatientName, formattedPassengerName, token)
+    await findPatientFolder(formattedPatientName, airtableID, token)
+    await createFolder({ folderName: 'accompanying_passengers' }, formattedPatientName, airtableID, token)
+    await findAccompanyingPassengerFolder(formattedPatientName, airtableID, formattedPassengerName, token)
 
     const result = await axios.get(
-      `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}/accompanying_passengers/${formattedPassengerName}:/children`,
+      `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}_${airtableID}/accompanying_passengers/${formattedPassengerName}:/children`,
       {
         headers: {
           Authorization: `bearer ${token}`,
@@ -330,6 +372,7 @@ export const getAccompanyingPassengerFile = async (req, res) => {
  */
 export const populateAccompanyingPassengersFolder = async (req, res) => {
   const patientName = req.body.patient_name;
+  const airtableID = req.body.airtableID;
   const passengers = req.body.accompanying_passengers; // should expect an array
 
   try {
@@ -347,14 +390,16 @@ export const populateAccompanyingPassengersFolder = async (req, res) => {
         const under18 = passengerAge < 18;
 
         // pre-check that patient folder and accomanpying_passengers folder exist before searching for accompanying passengers
-        await findPatientFolder(patientName, token);
+        await findPatientFolder(patientName, airtableID, token);
         await createFolder(
           { folderName: 'accompanying_passengers' },
           patientName,
+          airtableID,
           token
         );
         const passengerSearch = await findAccompanyingPassengerFolder(
           patientName,
+          airtableID,
           passengerName,
           token
         );
@@ -393,13 +438,14 @@ export const populateAccompanyingPassengersFolder = async (req, res) => {
  */
 async function findAccompanyingPassengerFolder(
   patientName: string,
+  airtableID: string,
   passengerName: string,
   token: string
 ): Promise<any> {
   const formattedPassengerName = passengerName.trim().split(/\s+/).join('_');
   try {
     const result = await axios.get(
-      `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}/accompanying_passengers/${formattedPassengerName}:/`,
+      `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}_${airtableID}/accompanying_passengers/${formattedPassengerName}:/`,
       {
         headers: {
           Authorization: `bearer ${token}`,
@@ -413,11 +459,13 @@ async function findAccompanyingPassengerFolder(
       try {
         await createAccompanyingPassengerFolder(
           patientName,
+          airtableID,
           formattedPassengerName,
           token
         );
         return await findAccompanyingPassengerFolder(
           patientName,
+          airtableID,
           formattedPassengerName,
           token
         );
@@ -443,6 +491,7 @@ async function findAccompanyingPassengerFolder(
  */
 async function createAccompanyingPassengerFolder(
   patientName: string,
+  airtableID: string,
   passengerName: string,
   token: string
 ): Promise<number> {
@@ -453,7 +502,7 @@ async function createAccompanyingPassengerFolder(
   };
   try {
     const result = await axios.post(
-      `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}/accompanying_passengers:/children`,
+      `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}_${airtableID}/accompanying_passengers:/children`,
       requestBody,
       {
         headers: {
@@ -477,7 +526,7 @@ async function createAccompanyingPassengerFolder(
  * @param dobString
  * @returns
  */
-function checkAge(dobString: string): Promise<number> {
+async function checkAge(dobString: string): Promise<number> {
   return new Promise((resolve, reject) => {
     try {
       const dob = new Date(dobString);
@@ -502,6 +551,7 @@ function checkAge(dobString: string): Promise<number> {
  */
 export const populateTripsFolder = async (req, res) => {
   const patientName = req.body.patient_name;
+  const airtableID = req.body.airtableID;
   const trips: TrimmedFlightRequest[] = req.body.trips;
 
   try {
@@ -511,8 +561,8 @@ export const populateTripsFolder = async (req, res) => {
     const token = authResponse?.accessToken as string;
     // since trip fulfillment is not on documents, must ensure that if documents page isn't rendered, we must create patient folder
     // if folder hierarchy has not already been established and additionally create the trips folder here as well.
-    await findPatientFolder(patientName, token);
-    await findMainTripsFolder(patientName, token);
+    await findPatientFolder(patientName, airtableID, token);
+    await findMainTripsFolder(patientName, airtableID, token);
 
     await Promise.all(
       trips.map(async trip => {
@@ -534,7 +584,7 @@ export const populateTripsFolder = async (req, res) => {
         }
 
         const folderName = `${trip.id}_${trip['Trip Type']}_${formattedEarliest}_${formattedLatest}`;
-        await findSubTripsFolder(patientName, folderName, token);
+        await findSubTripsFolder(patientName, airtableID, folderName, token);
       })
     );
     return res.status(200).json(trips);
@@ -554,11 +604,12 @@ export const populateTripsFolder = async (req, res) => {
  */
 async function findMainTripsFolder(
   patientName: string,
+  airtableID: string,
   token: string
 ): Promise<any> {
   try {
     const result = await axios.get(
-      `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}/trips:/`,
+      `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}_${airtableID}/trips:/`,
       {
         headers: {
           Authorization: `bearer ${token}`,
@@ -570,8 +621,8 @@ async function findMainTripsFolder(
     // resource not found
     if (e.response?.status == 404) {
       try {
-        await createFolder({ folderName: 'trips' }, patientName, token);
-        return await findMainTripsFolder(patientName, token);
+        await createFolder({ folderName: 'trips' }, patientName, airtableID, token);
+        return await findMainTripsFolder(patientName, airtableID, token);
       } catch (createError) {
         console.error('Error creating main trips folder:', createError);
         throw createError;
@@ -591,12 +642,13 @@ async function findMainTripsFolder(
  */
 async function findSubTripsFolder(
   patientName: string,
+  airtableID: string,
   folderName: string,
   token: string
 ): Promise<any> {
   try {
     const result = await axios.get(
-      `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}/trips/${folderName}:/`,
+      `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}_${airtableID}/trips/${folderName}:/`,
       {
         headers: {
           Authorization: `bearer ${token}`,
@@ -608,8 +660,8 @@ async function findSubTripsFolder(
     // resource not found
     if (e.response?.status == 404) {
       try {
-        await createSubTripsFolder(patientName, folderName, token);
-        return await findSubTripsFolder(patientName, folderName, token);
+        await createSubTripsFolder(patientName, airtableID, folderName, token);
+        return await findSubTripsFolder(patientName, airtableID, folderName, token);
       } catch (createError) {
         console.error('Error creating trip folder:', createError);
         throw createError;
@@ -623,12 +675,14 @@ async function findSubTripsFolder(
 /**
  *
  * @param patientName
+ * @param airtableID
  * @param folderName
  * @param token
  * @returns
  */
 async function createSubTripsFolder(
   patientName: string,
+  airtableID: string,
   folderName: string,
   token: string
 ): Promise<number> {
@@ -639,7 +693,7 @@ async function createSubTripsFolder(
       '@microsoft.graph.conflictBehavior': 'fail', // should fail if there was a callback issue and the folder already exists
     };
     const result = await axios.post(
-      `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}/trips:/children`,
+      `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}_${airtableID}/trips:/children`,
       requestBody,
       {
         headers: {
