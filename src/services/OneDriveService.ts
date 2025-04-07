@@ -18,7 +18,7 @@ app.use(express.json());
  */
 
 // create MSAL instance
-const cca = new ConfidentialClientApplication(msalConfig);
+export const cca = new ConfidentialClientApplication(msalConfig);
 
 /**
  * Simple endpoint to retrieve data regarding all of a patient's folders
@@ -103,7 +103,7 @@ export const populatePatientFolder = async (req, res) => {
  * @param token
  * @returns
  */
-async function findPatientFolder(
+export async function findPatientFolder(
   patientName: string,
   airtableID: string,
   token: string
@@ -140,7 +140,7 @@ async function findPatientFolder(
  * @param token
  * @returns
  */
-async function createPatientFolder(
+export async function createPatientFolder(
   patientName: string,
   airtableID: string,
   token: string
@@ -200,7 +200,7 @@ interface PopulateFolderResponse {
  * @param token
  * @returns
  */
-async function createFolder(
+export async function createFolder(
   params: FolderOperationParams,
   patientName: string,
   airtableID: string,
@@ -257,7 +257,7 @@ export const getDocuments = async (req, res) => {
     await findPatientFolder(formattedPatientName, airtableID, token)
     await createFolder({ folderName: 'documents' }, formattedPatientName, airtableID, token)
 
-    const result = await axios.get(
+    const results = await axios.get(
       `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}_${airtableID}/documents:/children`,
       {
         headers: {
@@ -265,7 +265,7 @@ export const getDocuments = async (req, res) => {
         },
       }
     );
-    const documentsData = await formatDocumentsData(result.data.value || [], patientName, airtableID);
+    const documentsData = await formatDocumentsData(results.data.value || [], patientName, airtableID);
     return res.status(200).json(documentsData);
   } catch (e) {
     console.error(e)
@@ -280,11 +280,29 @@ export const getDocuments = async (req, res) => {
  * @returns 
  */
 async function formatDocumentsData(rawFiles: any[], patientName: string, airtableID: string): Promise<DocumentsData> {
+  const extractExtension = (fileName: string): string | null => {
+    const parts = fileName.split(".");
+    return parts.length > 1 ? parts.pop()!.toLowerCase() : null;
+  };
+
   const formattedPatientName = patientName.trim().split(/\s+/).join('_');
 
   // expected file formats
-  const birthCert = `${formattedPatientName}_${airtableID}_birth_certificate.pdf`;
-  const financialCert = `${formattedPatientName}_${airtableID}_financial_certificate.pdf`
+  const birthFile = rawFiles.find((file) => file.name.includes("birth_certificate"));
+  const financialFile = rawFiles.find((file) => file.name.includes("financial_certificate"));
+
+  const birthExtension = birthFile ? extractExtension(birthFile.name) : null;
+  const financialExtension = financialFile ? extractExtension(financialFile.name) : null;
+
+  const birthCert =
+    birthExtension !== null
+      ? createFileName(formattedPatientName, airtableID, "birth_certificate", birthExtension)
+      : null;
+  const financialCert =
+    financialExtension !== null
+      ? createFileName(formattedPatientName, airtableID, "financial_certificate", financialExtension)
+      : null;
+
 
   // based on interface for FileData
   const files: FileData[] = rawFiles.map((file) => ({
@@ -295,16 +313,36 @@ async function formatDocumentsData(rawFiles: any[], patientName: string, airtabl
   })) as FileData[];
 
   // determine if the birth certificate exists for patient
-  const birthCertExists = rawFiles.some(
-    (file) => file.name === birthCert
-  );
+  const birthCertExists = birthCert ? rawFiles.some((file) => file.name === birthCert) : false;
+
   // determine if the financial certificate exists for patient
-  const financialCertExists = rawFiles.some(
-    (file) => file.name === financialCert
-  );
+  const financialCertExists = financialCert ? rawFiles.some((file) => file.name === financialCert) : false;
 
   return { files, birthCertExists, financialCertExists}
 }
+
+/**
+ * 
+ * @param formattedPatientName 
+ * @param airtableID 
+ * @param documentType 
+ * @param extension 
+ * @returns 
+ */
+const createFileName = (formattedPatientName, airtableID, documentType, extension) => {
+  let suffix = "";
+  switch (documentType) {
+    case "birth_certificate":
+      suffix = `_birth_certificate.${extension}`;
+      break;
+    case "financial_certificate":
+      suffix = `_financial_certificate.${extension}`;
+      break;
+    default:
+      suffix = `_document.${extension}`;
+  }
+  return `${formattedPatientName}_${airtableID}${suffix}`;
+};
 
 /**
  * Retrieves file information for a specific accompanying passenger

@@ -16,7 +16,7 @@ import {
   getFlightLegsById,
   createFlightRequest,
 } from '../controllers/FlightRequest.controller';
-import { uploadDocument } from '../controllers/Document.controller';
+import { createUploadSession, deleteUploadSession } from '../controllers/Document.controller';
 import { getQuestions } from '../services/JotFormService';
 import { getAirports } from '../controllers/Airports.controller';
 import {
@@ -31,6 +31,7 @@ import multer from 'multer';
 import express from 'express';
 import type { Request, Response } from 'express';
 import type { LooseAuthProp } from '@clerk/clerk-sdk-node';
+import { valid } from 'joi';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -73,17 +74,17 @@ router.post('/submit-flight-request', createFlightRequest);
 router.get('/get-questions', validateAuth, getQuestions);
 
 /* Document Controller Routes */
-router.post('/documents', validateAuth, upload.single('file'), uploadDocument);
 router.get('/documents', validateAuth, getDocuments);
+router.post('/upload-session', validateAuth, createUploadSession);
+router.delete('/delete-session', validateAuth, deleteUploadSession)
 
-// /* Webhook Route */
-// router.post(process.env.ZAPIER_WEBHOOK_KEY || '', validateAuth, uploadDocument)
 
 /* OneDrive Service Route */
 router.get('/test-patient', validateAuth, locatePatientFolder);
 router.post('/test-populate', validateAuth, populatePatientFolder);
 router.post(
   '/test-populate-accompanying',
+  validateAuth,
   populateAccompanyingPassengersFolder
 );
 router.post('/test-populate-trips', validateAuth, populateTripsFolder);
