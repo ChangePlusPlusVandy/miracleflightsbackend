@@ -237,13 +237,27 @@ export const getDocuments = async (req, res) => {
 
   if (!patientName) { return res.status(400).json({ message: "Missing query params"}) }
 
+  const formattedPatientName = patientName.trim().split(/\s+/).join('_'); 
+
   try {
     const authResponse = await cca.acquireTokenByClientCredential({
       scopes: ['https://graph.microsoft.com/.default'],
     });
     const token = authResponse?.accessToken as string;
 
+    await findPatientFolder(formattedPatientName, token)
+    await createFolder({ folderName: 'documents' }, formattedPatientName, token)
 
+    const result = await axios.get(
+      `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}/documents:/children`,
+      {
+        headers: {
+          Authorization: `bearer ${token}`,
+        },
+      }
+    );
+
+    return res.status(200).json(result.data);
 
   } catch (e) {
     console.error(e)
@@ -271,7 +285,9 @@ export const getAccompanyingPassengerFile = async (req, res) => {
     return res.status(200).json({ value: []})
   }
 
-  const formattedPassengerName = passengerName.trim().split(/\s+/).join('_'); // formatting check
+  // formatting check
+  const formattedPatientName = patientName.trim().split(/\s+/).join('_'); 
+  const formattedPassengerName = passengerName.trim().split(/\s+/).join('_'); 
 
   try {
     const authResponse = await cca.acquireTokenByClientCredential({
@@ -280,8 +296,9 @@ export const getAccompanyingPassengerFile = async (req, res) => {
     const token = authResponse?.accessToken as string;
 
     // fallback validation
-    await findPatientFolder(patientName, token)
-    await findAccompanyingPassengerFolder(patientName, formattedPassengerName, token)
+    await findPatientFolder(formattedPatientName, token)
+    await createFolder({ folderName: 'accompanying_passengers' }, formattedPatientName, token)
+    await findAccompanyingPassengerFolder(formattedPatientName, formattedPassengerName, token)
 
     const result = await axios.get(
       `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}/accompanying_passengers/${formattedPassengerName}:/children`,
@@ -324,7 +341,7 @@ export const populateAccompanyingPassengersFolder = async (req, res) => {
       passengers.map(async passenger => {
         const passengerName = passenger.fullName as string;
         const dobString = passenger.dob as string;
-        const relationship = passenger.relationship as string[];
+        const relationship = passenger.relationship as string;
 
         const passengerAge = await checkAge(dobString);
         const under18 = passengerAge < 18;
