@@ -3,6 +3,7 @@ import {
   getPassengerById,
   createPassenger,
   updatePassenger,
+  deletePassenger,
 } from '../controllers/Passenger.controller';
 import {
   createUser,
@@ -16,7 +17,10 @@ import {
   getFlightLegsById,
   createFlightRequest,
 } from '../controllers/FlightRequest.controller';
-import { createUploadSession, deleteUploadSession } from '../controllers/Document.controller';
+import {
+  createUploadSession,
+  deleteUploadSession,
+} from '../controllers/Document.controller';
 import { getQuestions } from '../services/JotFormService';
 import { getAirports } from '../controllers/Airports.controller';
 import {
@@ -25,7 +29,7 @@ import {
   populateAccompanyingPassengersFolder,
   populateTripsFolder,
   getAccompanyingPassengerFile,
-  getDocuments
+  getDocuments,
 } from '../services/OneDriveService';
 import multer from 'multer';
 import express from 'express';
@@ -58,6 +62,7 @@ router.get('/passenger/accompanying', validateAuth, getAllPassengersForUser);
 router.get('/passenger/:id', validateAuth, getPassengerById);
 router.post('/passenger/:id', validateAuth, createPassenger);
 router.put('/passenger/:id', validateAuth, updatePassenger);
+router.delete('/passenger/:id', validateAuth, deletePassenger);
 
 /* Dashboard Controller Routes */
 router.get('/dashboard/', getDashboardStats);
@@ -76,8 +81,7 @@ router.get('/get-questions', validateAuth, getQuestions);
 /* Document Controller Routes */
 router.get('/documents', validateAuth, getDocuments);
 router.post('/upload-session', validateAuth, createUploadSession);
-router.delete('/delete-session', validateAuth, deleteUploadSession)
-
+router.delete('/delete-session', validateAuth, deleteUploadSession);
 
 /* OneDrive Service Route */
 router.get('/test-patient', validateAuth, locatePatientFolder);
@@ -88,6 +92,10 @@ router.post(
   populateAccompanyingPassengersFolder
 );
 router.post('/test-populate-trips', validateAuth, populateTripsFolder);
-router.get('/get-accompanying-document', validateAuth, getAccompanyingPassengerFile);
+router.get(
+  '/get-accompanying-document',
+  validateAuth,
+  getAccompanyingPassengerFile
+);
 
 export default router;

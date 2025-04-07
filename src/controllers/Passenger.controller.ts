@@ -334,3 +334,48 @@ export const updatePassenger = async (req: Request, res: Response) => {
     return res.status(500).json({ error: 'Unexpected error while updating' });
   }
 };
+
+/**
+ * This function deletes a passenger for a given ID.
+ *
+ * Steps to complete:
+ * 1. Get the passengerId from the query parameters, if it doesn't exist return a 400.
+ * 2. Make a call to AirTable to delete the passenger, if that fails return a 500 (hint, use try/catch).
+ * 3. Return a success message with a 204 No Content status.
+ *
+ * @param req - the request object
+ * @param res - the response object
+ */
+export const deletePassenger = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).send({ error: 'Passenger ID is required' });
+  }
+
+  const base = new Airtable({
+    apiKey: process.env.AIRTABLE_API_KEY || '',
+  }).base(process.env.AIRTABLE_BASE_ID || '');
+
+  try {
+    await base('Passengers').destroy([id], (err, deletedRecords) => {
+      if (err) {
+        console.error('Airtable delete error:', err);
+        return res.status(500).json({ error: 'Error deleting passenger' });
+      }
+      if (deletedRecords && deletedRecords.length > 0) {
+        console.log(`Successfully deleted passenger with ID: ${id}`);
+        return res.status(204).send(); // 204 No Content for successful deletion
+      } else {
+        // This case might happen if the ID wasn't found by Airtable (though destroy usually doesn't error)
+        console.warn(`Passenger with ID: ${id} not found or not deleted.`);
+        return res.status(404).json({ error: 'Passenger not found' });
+      }
+    });
+  } catch (err: any) {
+    console.error('Unexpected error during deletion:', err);
+    return res
+      .status(500)
+      .json({ error: 'Unexpected error while deleting passenger' });
+  }
+};
