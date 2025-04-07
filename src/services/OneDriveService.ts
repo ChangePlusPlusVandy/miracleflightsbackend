@@ -5,14 +5,17 @@ import axios from 'axios';
 import { ConfidentialClientApplication } from '@azure/msal-node';
 import type { TrimmedFlightRequest } from '../interfaces/requests/trimmed-flight-request.interface';
 import type { FlightLegData } from '../interfaces/legs/flight-leg.interface';
-import type { DocumentsData, FileData } from '../interfaces/documents/documents.interface';
+import type {
+  DocumentsData,
+  FileData,
+} from '../interfaces/documents/documents.interface';
 
 const app = express();
 app.use(express.json());
 
 /**
  * Reusuable service for accessing, managing, and restructuring the onedrive associated
- * with Jotform account. Handles multiple aspects of Microsoft Graph API and OneDrive. Refer to README.md 
+ * with Jotform account. Handles multiple aspects of Microsoft Graph API and OneDrive. Refer to README.md
  * for detailed breakdown of core functionality and endpoint details.
  *
  */
@@ -57,7 +60,7 @@ export const locatePatientFolder = async (req, res): Promise<Response> => {
 export const populatePatientFolder = async (req, res) => {
   const patientName = req.body.patient_name;
   const airtableID = req.body.airtableID;
-  
+
   try {
     const authResponse = await cca.acquireTokenByClientCredential({
       scopes: ['https://graph.microsoft.com/.default'],
@@ -75,7 +78,12 @@ export const populatePatientFolder = async (req, res) => {
             airtableID,
             token
           ),
-          createFolder({ folderName: 'documents' }, patientName, airtableID, token),
+          createFolder(
+            { folderName: 'documents' },
+            patientName,
+            airtableID,
+            token
+          ),
         ]);
 
       const responseData: PopulateFolderResponse = {
@@ -244,9 +252,11 @@ export const getDocuments = async (req, res) => {
   const patientName = req.query.patientName as string;
   const airtableID = req.query.airtableID as string;
 
-  if (!patientName) { return res.status(400).json({ message: "Missing query params"}) }
+  if (!patientName) {
+    return res.status(400).json({ message: 'Missing query params' });
+  }
 
-  const formattedPatientName = patientName.trim().split(/\s+/).join('_'); 
+  const formattedPatientName = patientName.trim().split(/\s+/).join('_');
 
   try {
     const authResponse = await cca.acquireTokenByClientCredential({
@@ -254,8 +264,13 @@ export const getDocuments = async (req, res) => {
     });
     const token = authResponse?.accessToken as string;
 
-    await findPatientFolder(formattedPatientName, airtableID, token)
-    await createFolder({ folderName: 'documents' }, formattedPatientName, airtableID, token)
+    await findPatientFolder(formattedPatientName, airtableID, token);
+    await createFolder(
+      { folderName: 'documents' },
+      formattedPatientName,
+      airtableID,
+      token
+    );
 
     const results = await axios.get(
       `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}_${airtableID}/documents:/children`,
@@ -265,78 +280,110 @@ export const getDocuments = async (req, res) => {
         },
       }
     );
-    const documentsData = await formatDocumentsData(results.data.value || [], patientName, airtableID);
+    const documentsData = await formatDocumentsData(
+      results.data.value || [],
+      patientName,
+      airtableID
+    );
     return res.status(200).json(documentsData);
   } catch (e) {
-    console.error(e)
-    return res.status(500).json({ message: "Internal server error (500)"});
+    console.error(e);
+    return res.status(500).json({ message: 'Internal server error (500)' });
   }
 };
 
 /**
  * Formats document data
- * @param rawFiles 
- * @param patientName 
- * @returns 
+ * @param rawFiles
+ * @param patientName
+ * @returns
  */
-async function formatDocumentsData(rawFiles: any[], patientName: string, airtableID: string): Promise<DocumentsData> {
+async function formatDocumentsData(
+  rawFiles: any[],
+  patientName: string,
+  airtableID: string
+): Promise<DocumentsData> {
   const extractExtension = (fileName: string): string | null => {
-    const parts = fileName.split(".");
+    const parts = fileName.split('.');
     return parts.length > 1 ? parts.pop()!.toLowerCase() : null;
   };
 
   const formattedPatientName = patientName.trim().split(/\s+/).join('_');
 
   // expected file formats
-  const birthFile = rawFiles.find((file) => file.name.includes("birth_certificate"));
-  const financialFile = rawFiles.find((file) => file.name.includes("financial_certificate"));
+  const birthFile = rawFiles.find(file =>
+    file.name.includes('birth_certificate')
+  );
+  const financialFile = rawFiles.find(file =>
+    file.name.includes('financial_document')
+  );
 
   const birthExtension = birthFile ? extractExtension(birthFile.name) : null;
-  const financialExtension = financialFile ? extractExtension(financialFile.name) : null;
+  const financialExtension = financialFile
+    ? extractExtension(financialFile.name)
+    : null;
 
   const birthCert =
     birthExtension !== null
-      ? createFileName(formattedPatientName, airtableID, "birth_certificate", birthExtension)
+      ? createFileName(
+          formattedPatientName,
+          airtableID,
+          'birth_certificate',
+          birthExtension
+        )
       : null;
   const financialCert =
     financialExtension !== null
-      ? createFileName(formattedPatientName, airtableID, "financial_certificate", financialExtension)
+      ? createFileName(
+          formattedPatientName,
+          airtableID,
+          'financial_document',
+          financialExtension
+        )
       : null;
 
-
   // based on interface for FileData
-  const files: FileData[] = rawFiles.map((file) => ({
+  const files: FileData[] = rawFiles.map(file => ({
     id: file.id,
     name: file.name,
-    downloadUrl: file["@microsoft.graph.downloadUrl"], // for a clickable reference to document
+    downloadUrl: file['@microsoft.graph.downloadUrl'], // for a clickable reference to document
     createdDateTime: formatISODateTime(file.createdDateTime), // MM/DD/YYYY - 00:00:00
   })) as FileData[];
 
   // determine if the birth certificate exists for patient
-  const birthCertExists = birthCert ? rawFiles.some((file) => file.name === birthCert) : false;
+  const birthCertExists = birthCert
+    ? rawFiles.some(file => file.name === birthCert)
+    : false;
 
   // determine if the financial certificate exists for patient
-  const financialCertExists = financialCert ? rawFiles.some((file) => file.name === financialCert) : false;
+  const financialCertExists = financialCert
+    ? rawFiles.some(file => file.name === financialCert)
+    : false;
 
-  return { files, birthCertExists, financialCertExists}
+  return { files, birthCertExists, financialCertExists };
 }
 
 /**
- * 
- * @param formattedPatientName 
- * @param airtableID 
- * @param documentType 
- * @param extension 
- * @returns 
+ *
+ * @param formattedPatientName
+ * @param airtableID
+ * @param documentType
+ * @param extension
+ * @returns
  */
-const createFileName = (formattedPatientName, airtableID, documentType, extension) => {
-  let suffix = "";
+const createFileName = (
+  formattedPatientName,
+  airtableID,
+  documentType,
+  extension
+) => {
+  let suffix = '';
   switch (documentType) {
-    case "birth_certificate":
+    case 'birth_certificate':
       suffix = `_birth_certificate.${extension}`;
       break;
-    case "financial_certificate":
-      suffix = `_financial_certificate.${extension}`;
+    case 'financial_document':
+      suffix = `_financial_document.${extension}`;
       break;
     default:
       suffix = `_document.${extension}`;
@@ -346,8 +393,8 @@ const createFileName = (formattedPatientName, airtableID, documentType, extensio
 
 /**
  * Retrieves file information for a specific accompanying passenger
- * 
- * @param req 
+ *
+ * @param req
  * @param res The value parameter is used for determining if there are files within - empty array response indicates no files exist
  */
 export const getAccompanyingPassengerFile = async (req, res) => {
@@ -356,18 +403,20 @@ export const getAccompanyingPassengerFile = async (req, res) => {
   const passengerName = req.query.passengerFullName as string;
   const passengerDob = req.query.passengerDob as string;
 
-  if (!patientName || !airtableID || !passengerName || !passengerDob ) { return res.status(400).json({ message: "Missing query params"}) }
-  
-  const age = await checkAge(passengerDob)
+  if (!patientName || !airtableID || !passengerName || !passengerDob) {
+    return res.status(400).json({ message: 'Missing query params' });
+  }
+
+  const age = await checkAge(passengerDob);
 
   // conditional check: if accompanying passenger is legal adult, no need for documents
   if (age >= 18) {
-    return res.status(200).json({ value: []})
+    return res.status(200).json({ value: [] });
   }
 
   // formatting check
-  const formattedPatientName = patientName.trim().split(/\s+/).join('_'); 
-  const formattedPassengerName = passengerName.trim().split(/\s+/).join('_'); 
+  const formattedPatientName = patientName.trim().split(/\s+/).join('_');
+  const formattedPassengerName = passengerName.trim().split(/\s+/).join('_');
 
   try {
     const authResponse = await cca.acquireTokenByClientCredential({
@@ -376,9 +425,19 @@ export const getAccompanyingPassengerFile = async (req, res) => {
     const token = authResponse?.accessToken as string;
 
     // fallback validation
-    await findPatientFolder(formattedPatientName, airtableID, token)
-    await createFolder({ folderName: 'accompanying_passengers' }, formattedPatientName, airtableID, token)
-    await findAccompanyingPassengerFolder(formattedPatientName, airtableID, formattedPassengerName, token)
+    await findPatientFolder(formattedPatientName, airtableID, token);
+    await createFolder(
+      { folderName: 'accompanying_passengers' },
+      formattedPatientName,
+      airtableID,
+      token
+    );
+    await findAccompanyingPassengerFolder(
+      formattedPatientName,
+      airtableID,
+      formattedPassengerName,
+      token
+    );
 
     const result = await axios.get(
       `https://graph.microsoft.com/v1.0/drives/b!Bq4F0cHhHUStWX6xu3PlSvFGg-J9yP9AoIbUjyaXbEnmwavHs1M_Q5YJNNIAL06K/root:/CPPMiracleFlights25/patient_data/${patientName}_${airtableID}/accompanying_passengers/${formattedPassengerName}:/children`,
@@ -391,14 +450,14 @@ export const getAccompanyingPassengerFile = async (req, res) => {
     return res.status(200).json(result.data);
   } catch (e) {
     console.error(e);
-    return res.status(500).json({ message: "Internal server error (500)"});
+    return res.status(500).json({ message: 'Internal server error (500)' });
   }
-}
+};
 
 // /**
-//  * 
-//  * @param req 
-//  * @param res 
+//  *
+//  * @param req
+//  * @param res
 //  */
 // export const getTreatmentSiteVerification = async (req, res) => {
 // }
@@ -659,7 +718,12 @@ async function findMainTripsFolder(
     // resource not found
     if (e.response?.status == 404) {
       try {
-        await createFolder({ folderName: 'trips' }, patientName, airtableID, token);
+        await createFolder(
+          { folderName: 'trips' },
+          patientName,
+          airtableID,
+          token
+        );
         return await findMainTripsFolder(patientName, airtableID, token);
       } catch (createError) {
         console.error('Error creating main trips folder:', createError);
@@ -699,7 +763,12 @@ async function findSubTripsFolder(
     if (e.response?.status == 404) {
       try {
         await createSubTripsFolder(patientName, airtableID, folderName, token);
-        return await findSubTripsFolder(patientName, airtableID, folderName, token);
+        return await findSubTripsFolder(
+          patientName,
+          airtableID,
+          folderName,
+          token
+        );
       } catch (createError) {
         console.error('Error creating trip folder:', createError);
         throw createError;
