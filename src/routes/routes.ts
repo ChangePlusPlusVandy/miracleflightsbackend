@@ -74,6 +74,7 @@ router.get('/get-questions', validateAuth, getQuestions);
 
 /* Document Controller Routes */
 router.post('/documents', validateAuth, upload.single('file'), uploadDocument);
+router.get('/documents', validateAuth, getDocuments);
 
 // /* Webhook Route */
 // router.post(process.env.ZAPIER_WEBHOOK_KEY || '', validateAuth, uploadDocument)
@@ -83,11 +84,9 @@ router.get('/test-patient', validateAuth, locatePatientFolder);
 router.post('/test-populate', validateAuth, populatePatientFolder);
 router.post(
   '/test-populate-accompanying',
-  validateAuth,
   populateAccompanyingPassengersFolder
 );
 router.post('/test-populate-trips', validateAuth, populateTripsFolder);
 router.get('/get-accompanying-document', validateAuth, getAccompanyingPassengerFile);
-router.get('/get-patient-documents', validateAuth, getDocuments);
 
 export default router;
