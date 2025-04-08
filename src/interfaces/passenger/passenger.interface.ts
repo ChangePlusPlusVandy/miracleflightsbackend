@@ -9,6 +9,8 @@ export interface PassengerData {
     Gender: string;
     Street: string;
     City: string;
+    State?: string | undefined;
+    Zip?: string | undefined;
     Country: string;
     Email: string;
     'Cell Phone': string;
