@@ -289,6 +289,7 @@ export const updatePassenger = async (req: Request, res: Response) => {
     Street: Joi.string().optional(),
     Relationship: Joi.string().optional().allow(''),
     City: Joi.string().optional(),
+    Zip: Joi.string().optional(),
     State: Joi.string().optional(),
     Country: Joi.string().optional(),
     Email: Joi.string().email().optional(),
@@ -303,6 +304,7 @@ export const updatePassenger = async (req: Request, res: Response) => {
     'Military Member': Joi.array().optional(),
     Gender: Joi.string().optional(),
     'Date of Birth': Joi.string().optional(),
+    Diagnoses: Joi.array().optional(),
   });
 
   const { error } = schema.validate(passengerData.records[0].fields);

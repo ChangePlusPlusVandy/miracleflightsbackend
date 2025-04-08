@@ -9,6 +9,8 @@ export interface TrimmedPassenger {
   Relationship?: string;
   Street: string;
   City: string;
+  State?: string | undefined;
+  Zip?: string | undefined;
   Country: string;
   Email: string;
   'Household Income': string;
