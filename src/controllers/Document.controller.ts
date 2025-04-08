@@ -22,8 +22,6 @@ export const createUploadSession = async (req, res) => {
   const airtableID = req.body.airtableID as string;
   const passengerName = req.body?.passenger_name as string;
 
-  console.log(passengerName);
-
   try {
     const authResponse = await cca.acquireTokenByClientCredential({
       scopes: ['https://graph.microsoft.com/.default'],
