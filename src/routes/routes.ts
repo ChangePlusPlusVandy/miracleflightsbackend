@@ -33,9 +33,9 @@ import {
 } from '../services/OneDriveService';
 import multer from 'multer';
 import express from 'express';
+
 import type { Request, Response } from 'express';
 import type { LooseAuthProp } from '@clerk/clerk-sdk-node';
-import { valid } from 'joi';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace

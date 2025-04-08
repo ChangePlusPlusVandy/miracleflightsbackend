@@ -1,9 +1,9 @@
+import { encryptionUtil } from '../../util/encryption';
 import type {
   ICachePlugin,
   TokenCacheContext,
   ICacheClient,
 } from '@azure/msal-node';
-import { encryptionUtil } from '../../util/encryption';
 
 const CACHE_KEY = process.env.CACHE_KEY as string;
 
@@ -33,7 +33,6 @@ class redisCachePlugin implements ICachePlugin {
       const serializedCache = cacheContext.tokenCache.serialize();
       const encryptedCache = await encryptionUtil.encrypt(serializedCache);
       await this.client.set(CACHE_KEY, encryptedCache);
-
     }
   }
 }
