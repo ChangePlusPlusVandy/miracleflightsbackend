@@ -1,10 +1,9 @@
-import msalConfig from '../config/msalConfig';
-import { cca } from "../services/OneDriveService";
-import { formatISODateTime, formatLocalDate } from '../util/dateUtils';
-import express from 'express'; 
+
+import { cca  } from '../services/OneDriveService';
+
+
 import axios from 'axios';
-import { ConfidentialClientApplication } from '@azure/msal-node';
-import { findPatientFolder, createFolder } from "../services/OneDriveService";
+
 
 /**
  * Document upload codebase controller to handle upload session creation, deletion, error resolving
@@ -13,10 +12,10 @@ import { findPatientFolder, createFolder } from "../services/OneDriveService";
 
 /**
  * Responsible for creating an upload session to stream data into and upload to documents.
- * 
- * @param req 
- * @param res 
- * @returns 
+ *
+ * @param req
+ * @param res
+ * @returns
  */
 export const createUploadSession = async (req, res) => {
   const patientName = req.body.patient_name as string;
@@ -38,41 +37,41 @@ export const createUploadSession = async (req, res) => {
       {
         headers: {
           Authorization: `bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
       }
     );
 
     // extremely important to preserve the upload session URL or else file cannot be uploaded to
-    return res.status(200).json(result.data)
+    return res.status(200).json(result.data);
   } catch (e: any) {
     if (e.response?.status == 409) {
-      console.error("Upload session already created for file!", e)
-      return res.status(409).json(e)
+      console.error('Upload session already created for file!', e);
+      return res.status(409).json(e);
     }
     console.error(e);
-    res.status(500).json({ message: e })
+    res.status(500).json({ message: e });
   }
-}
+};
 
 /**
  * Simple function to attempt to delete upload session if Microsoft service doesn't already
- * 
- * @param req 
- * @param res 
- * @returns 
+ *
+ * @param req
+ * @param res
+ * @returns
  */
-export const deleteUploadSession = async(req, res) => {
+export const deleteUploadSession = async (req, res) => {
   const uploadUrl = req.body.uploadUrl as string;
 
   try {
     await axios.delete(uploadUrl);
 
-    return res.status(204)
+    return res.status(204);
   } catch (e: any) {
     if (e.response?.status == 404) {
-      return res.status(204).json({ message: "Upload session was deleted" });
+      return res.status(204).json({ message: 'Upload session was deleted' });
     }
-    return res.status(404).json({ message: "Upload session does not exist!"})
+    return res.status(404).json({ message: 'Upload session does not exist!' });
   }
-}
+};

@@ -16,6 +16,7 @@ app.use(express.json());
 /**
  * Reusuable service for accessing, managing, and restructuring the onedrive associated
  * with Jotform account. Handles multiple aspects of Microsoft Graph API and OneDrive. Refer to README.md
+ * with Jotform account. Handles multiple aspects of Microsoft Graph API and OneDrive. Refer to README.md
  * for detailed breakdown of core functionality and endpoint details.
  *
  */
@@ -60,6 +61,7 @@ export const locatePatientFolder = async (req, res): Promise<Response> => {
 export const populatePatientFolder = async (req, res) => {
   const patientName = req.body.patient_name;
   const airtableID = req.body.airtableID;
+
 
   try {
     const authResponse = await cca.acquireTokenByClientCredential({
@@ -255,6 +257,9 @@ export const getDocuments = async (req, res) => {
   if (!patientName) {
     return res.status(400).json({ message: 'Missing query params' });
   }
+  if (!patientName) {
+    return res.status(400).json({ message: 'Missing query params' });
+  }
 
   const formattedPatientName = patientName.trim().split(/\s+/).join('_');
 
@@ -297,6 +302,9 @@ export const getDocuments = async (req, res) => {
  * @param rawFiles
  * @param patientName
  * @returns
+ * @param rawFiles
+ * @param patientName
+ * @returns
  */
 async function formatDocumentsData(
   rawFiles: any[],
@@ -315,7 +323,7 @@ async function formatDocumentsData(
     file.name.includes('birth_certificate')
   );
   const financialFile = rawFiles.find(file =>
-    file.name.includes('financial_document')
+    file.name.includes('financial_certificate')
   );
 
   const birthExtension = birthFile ? extractExtension(birthFile.name) : null;
@@ -334,12 +342,7 @@ async function formatDocumentsData(
       : null;
   const financialCert =
     financialExtension !== null
-      ? createFileName(
-          formattedPatientName,
-          airtableID,
-          'financial_document',
-          financialExtension
-        )
+      ? createFileName(formattedPatientName, airtableID, "financial_certificate", financialExtension)
       : null;
 
   // based on interface for FileData
@@ -382,8 +385,8 @@ const createFileName = (
     case 'birth_certificate':
       suffix = `_birth_certificate.${extension}`;
       break;
-    case 'financial_document':
-      suffix = `_financial_document.${extension}`;
+    case 'financial_certificate':
+      suffix = `_financial_certificate.${extension}`;
       break;
     default:
       suffix = `_document.${extension}`;

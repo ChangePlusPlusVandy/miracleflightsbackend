@@ -16,7 +16,6 @@ function formatISODateForAirtable(isoDateString) {
   }
 }
 
-
 /**
  * Formats an ISO 8601 date string to MM/DD/YYYY - HH:MM:SS.
  * @param {string} isoDateString - The date string in ISO 8601 format.
@@ -36,7 +35,7 @@ function formatISODateTime(isoDateString) {
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     const seconds = String(date.getSeconds()).padStart(2, '0');
-    
+
     return `${month}/${day}/${year} - ${hours}:${minutes}:${seconds}`;
   } catch (error) {
     console.error('Error formatting date:', isoDateString, error);

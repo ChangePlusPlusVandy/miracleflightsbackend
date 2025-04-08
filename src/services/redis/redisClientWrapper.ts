@@ -1,3 +1,4 @@
+import { encryptionUtil } from '../../util/encryption';
 import type { ICacheClient } from '@azure/msal-node';
 import type {
   RedisClientType,
@@ -5,7 +6,6 @@ import type {
   RedisFunctions,
   RedisScripts,
 } from 'redis';
-import { encryptionUtil } from '../../util/encryption';
 
 const CACHE_KEY = process.env.CACHE_KEY as string; // app cache
 const CACHE_TTL = 60 * 60 * 24; // 24 hour duration
@@ -65,8 +65,9 @@ class redisClientWrapper implements ICacheClient {
     const encryptedValue = await encryptionUtil.encrypt(value);
     try {
       return (
-        (await this.cacheClient.set(CACHE_KEY, encryptedValue, { EX: CACHE_TTL })) ||
-        EMPTY_STRING
+        (await this.cacheClient.set(CACHE_KEY, encryptedValue, {
+          EX: CACHE_TTL,
+        })) || EMPTY_STRING
       );
     } catch (e) {
       console.error(e);
@@ -74,6 +75,6 @@ class redisClientWrapper implements ICacheClient {
 
     return EMPTY_STRING;
   }
-};
+}
 
 export default redisClientWrapper;
