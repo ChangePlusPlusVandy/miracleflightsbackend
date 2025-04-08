@@ -305,6 +305,8 @@ export const updatePassenger = async (req: Request, res: Response) => {
     Gender: Joi.string().optional(),
     'Date of Birth': Joi.string().optional(),
     Diagnoses: Joi.array().optional(),
+    'First Name': Joi.string().optional(),
+    'Last Name': Joi.string().optional(),
   });
 
   const { error } = schema.validate(passengerData.records[0].fields);
